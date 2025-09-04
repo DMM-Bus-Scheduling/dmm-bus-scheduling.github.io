@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fleet Routing Optimization | SmartRoute</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body>
+
+  <!-- Hero Section -->
+<section class="hero is-primary is-medium">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-size-2">
+        Optimize Your Electric Fleet with Fewer Vehicles
+      </h1>
+      <p class="subtitle is-size-5 mt-4">
+        SmartRoute analyzes your trip schedules, depot locations, and vehicle specs to deliver 
+        efficient EV schedules — cutting costs while keeping service levels high.
+      </p>
+      <a href="#contact" class="button is-light is-medium mt-4">Request a Demo</a>
+    </div>
+  </div>
+</section>
+
+
+  <!-- Benefits -->
+<section class="section">
+  <div class="container">
+    <h2 class="title has-text-centered">Why Fleet Operators Choose SmartRoute</h2>
+    <div class="columns is-multiline mt-5">
+      
+      <div class="column is-one-third">
+        <div class="box has-text-centered">
+          <span class="icon is-large mb-2">
+            <i class="fas fa-bus fa-2x"></i>
+          </span>
+          <h3 class="title is-5">Cut Fleet Size</h3>
+          <p>Reduce the number of EVs needed to meet demand with intelligent scheduling and route switching.</p>
+        </div>
+      </div>
+      
+      <div class="column is-one-third">
+        <div class="box has-text-centered">
+          <span class="icon is-large mb-2">
+            <i class="fas fa-bolt fa-2x"></i>
+          </span>
+          <h3 class="title is-5">EV-Aware Optimization</h3>
+          <p>Accounts for battery capacity, discharge per km, and charge rates to ensure feasible deployment.</p>
+        </div>
+      </div>
+      
+      <div class="column is-one-third">
+        <div class="box has-text-centered">
+          <span class="icon is-large mb-2">
+            <i class="fas fa-calendar-alt fa-2x"></i>
+          </span>
+          <h3 class="title is-5">Complete Schedules</h3>
+          <p>Outputs trip schedules per vehicle — for weekdays, weekends, and seasonal changes.</p>
+        </div>
+      </div>
+
+      <div class="column is-one-third">
+        <div class="box has-text-centered">
+          <span class="icon is-large mb-2">
+            <i class="fas fa-clock fa-2x"></i>
+          </span>
+          <h3 class="title is-5">Fast or Exact Results</h3>
+          <p>Choose between quick heuristics or exact linear programming optimization.</p>
+        </div>
+      </div>
+
+      <div class="column is-one-third">
+        <div class="box has-text-centered">
+          <span class="icon is-large mb-2">
+            <i class="fas fa-map-marked-alt fa-2x"></i>
+          </span>
+          <h3 class="title is-5">Map-Based Routing</h3>
+          <p>Uses geospatial relationships and travel durations between stops for realistic planning.</p>
+        </div>
+      </div>
+
+      <div class="column is-one-third">
+        <div class="box has-text-centered">
+          <span class="icon is-large mb-2">
+            <i class="fas fa-plug fa-2x"></i>
+          </span>
+          <h3 class="title is-5">Depot Charging Plans</h3>
+          <p>Assigns when and where vehicles charge — fully respecting charging infrastructure constraints.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+  <!-- Social Proof -->
+  <section class="section has-background-white-ter">
+  <div class="container">
+    <h2 class="title has-text-centered">Trusted by Leading Logistics Companies</h2>
+    <div class="columns is-multiline is-mobile is-centered mt-5">
+      <div class="column is-narrow">
+        <figure class="image is-128x64">
+          <img src="https://placehold.co/120x60?text=Logo+1&font=roboto" alt="Client Logo 1">
+        </figure>
+      </div>
+      <div class="column is-narrow">
+        <figure class="image is-128x64">
+          <img src="https://placehold.co/120x60?text=Logo+2&font=roboto" alt="Client Logo 2">
+        </figure>
+      </div>
+      <div class="column is-narrow">
+        <figure class="image is-128x64">
+          <img src="https://placehold.co/120x60?text=Logo+3&font=roboto" alt="Client Logo 3">
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <!-- How It Works -->
+ <section id="how-it-works" class="section">
+  <div class="container">
+    <h2 class="title has-text-centered">How It Works</h2>
+    <p class="subtitle has-text-centered mb-6">
+      Our optimization engine transforms complex transit data into efficient, electric vehicle schedules — minimizing fleet size while ensuring full coverage.
+    </p>
+
+    <!-- Inputs -->
+    <div class="box">
+      <h3 class="title is-5 mb-4">🔍 Data Inputs</h3>
+      <div class="columns is-multiline">
+        <div class="column is-half">
+          <ul>
+            <li>🧭 <strong>Stops & Routes:</strong> Map of all stop connections</li>
+            <li>🚌 <strong>Trips:</strong> Arrival and departure times per trip</li>
+            <li>🗓️ <strong>Schedules:</strong> Weekdays, weekends, and seasonal types</li>
+          </ul>
+        </div>
+        <div class="column is-half">
+          <ul>
+            <li>🔋 <strong>Vehicles:</strong> Battery capacity, discharge & charge rates</li>
+            <li>🏁 <strong>Depots:</strong> Parking and charging locations</li>
+            <li>📏 <strong>Distances & Durations:</strong> Between all points</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outputs -->
+    <div class="box mt-5">
+      <h3 class="title is-5 mb-4">📈 Outputs You Get</h3>
+      <div class="columns is-multiline">
+        <div class="column is-half">
+          <ul>
+            <li>✅ <strong>Minimal fleet size</strong> needed to meet all trip demand</li>
+            <li>🕒 <strong>Schedules for each vehicle</strong> across all time types</li>
+          </ul>
+        </div>
+        <div class="column is-half">
+          <ul>
+            <li>🔌 <strong>Charging plans</strong> that respect energy limits</li>
+            <li>🔄 <strong>Route switching logic</strong> between compatible trips</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optimization Modes -->
+    <div class="box mt-5">
+      <h3 class="title is-5 mb-4">⚙️ Optimization Modes</h3>
+      <div class="columns">
+        <div class="column">
+          <p><strong>⚡ Fast Mode:</strong> Graph-based and greedy algorithms for quick results.</p>
+        </div>
+        <div class="column">
+          <p><strong>🧠 Optimal Mode:</strong> Exact fleet minimization using linear programming.</p>
+        </div>
+      </div>
+    </div>
+
+<section class="section has-background-light">
+  <div class="container">
+    <h2 class="title has-text-centered">How the Optimization Works</h2>
+    <p class="subtitle has-text-centered mb-5">
+      From transit data to efficient EV fleet schedules — fully automated.
+    </p>
+
+    <div class="has-text-centered">
+        <script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true });
+</script>
+
+    <div class="mermaid">
+graph LR
+    A[Stops and Routes] --> E[Optimization Engine]
+    B[Trips and Timetables] --> E
+    C[Vehicle Specs - Battery, Charge Rate] --> E
+    D[Depots - Parking and Charging] --> E
+    F[Distance and Duration Matrix] --> E
+
+    E --> G1[Fast Mode - Graph and Greedy Algos]
+    E --> G2[Optimal Mode - Linear Programming]
+
+    G1 --> H[Optimized Outputs]
+    G2 --> H
+
+    H --> H1[Minimal Fleet Size]
+    H --> H2[Vehicle Schedules - Weekdays, Weekends, Seasons]
+    H --> H3[Charging Plans]
+    H --> H4[Route Switching]
+
+</div>
+    </div>
+  </div>
+</section>
+
+  
+
+
+    <!-- Call to Action -->
+    <div class="has-text-centered mt-6">
+      <p class="is-size-5 mb-4">Need to reduce your fleet without cutting service?</p>
+      <a href="#contact" class="button is-warning is-medium">Request a Demo</a>
+    </div>
+  </div>
+</section>
+
+
+  <!-- Testimonials -->
+<section id="testimonials" class="section has-background-light">
+  <div class="container">
+    <h2 class="title has-text-centered">What Our Clients Are Saying</h2>
+    <div class="columns is-multiline mt-5">
+
+      <div class="column is-one-third">
+        <div class="box">
+          <p class="is-italic">“SmartRoute helped us reduce our required EV fleet by 18% without cutting a single route. The automated scheduling has been a game-changer for our operations.”</p>
+          <p class="has-text-weight-semibold mt-3">— Maria L., Transit Operations Manager</p>
+          <p class="is-size-7 has-text-grey">MetroGreen Transport</p>
+        </div>
+      </div>
+
+      <div class="column is-one-third">
+        <div class="box">
+          <p class="is-italic">“We used to spend days manually mapping out seasonal bus schedules. Now it’s done in under an hour — and with depot-level charging plans included.”</p>
+          <p class="has-text-weight-semibold mt-3">— James R., Fleet Scheduler</p>
+          <p class="is-size-7 has-text-grey">North Urban Transit Authority</p>
+        </div>
+      </div>
+
+      <div class="column is-one-third">
+        <div class="box">
+          <p class="is-italic">“As we scale our electric fleet, SmartRoute ensures every vehicle is used to its full potential. The optimization engine handles complexities we couldn’t.”</p>
+          <p class="has-text-weight-semibold mt-3">— Priya S., Director of Fleet Strategy</p>
+          <p class="is-size-7 has-text-grey">EcoFleet Mobility Group</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Team Section -->
+<section class="team">
+  <section class="section has-background-light">
+  <div class="container">
+    <h2 class="title has-text-centered">Meet Our Team</h2>
+    <p class="subtitle has-text-centered">Experts in logistics, data science, and scalable systems.</p>
+    <div class="columns is-multiline is-centered">
+
+      <div class="column is-one-quarter">
+        <div class="card has-text-centered">
+          <div class="card-image">
+            <figure class="image is-128x128 is-inline-block">
+              <img class="is-rounded" src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff" alt="John Doe">
+            </figure>
+          </div>
+          <div class="card-content">
+            <p class="title is-5">John Doe</p>
+            <p class="subtitle is-6">CEO & Co-Founder</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-one-quarter">
+        <div class="card has-text-centered">
+          <div class="card-image">
+            <figure class="image is-128x128 is-inline-block">
+              <img class="is-rounded" src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff" alt="John Doe">
+            </figure>
+          </div>
+          <div class="card-content">
+            <p class="title is-5">John Doe</p>
+            <p class="subtitle is-6">CEO & Co-Founder</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-one-quarter">
+        <div class="card has-text-centered">
+          <div class="card-image">
+            <figure class="image is-128x128 is-inline-block">
+              <img class="is-rounded" src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff" alt="John Doe">
+            </figure>
+          </div>
+          <div class="card-content">
+            <p class="title is-5">John Doe</p>
+            <p class="subtitle is-6">CEO & Co-Founder</p>
+          </div>
+        </div>
+      </div>
+      <!-- Repeat for other team members -->
+
+    </div>
+  </div>
+</section>
+
+
+  <!-- Contact Form -->
+  <section id="contact" class="section">
+  <div class="container has-text-centered">
+    <h2 class="title">Contact Us</h2>
+    <p>Email: <a href="mailto:contact@smartroute.com">contact@smartroute.com</a></p>
+    <p>Phone: <a href="tel:+1234567890">+1 (234) 567-890</a></p>
+    <p>Address: 123 Fleet St, Transit City</p>
+  </div>
+</section>
+
+  <!-- Footer -->
+<footer class="footer">
+  <div class="content has-text-centered">
+    <p>
+      &copy; 2025 SmartRoute Technologies. All rights reserved.
+      <br />
+      <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
+"Flow from data ingestion to optimization engine to outputs. Show inputs (Stops & Routes, Trips, Vehicles Specs, Depots, Distance Matrix) flowing into an Optimization Engine that branches into Fast Mode and Optimal Mode, and outputs (Fleet Size, Schedules, Charging Plans). Horizontal layout with clear labels."
