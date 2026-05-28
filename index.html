@@ -374,7 +374,7 @@
                     <p>Get in touch to run a custom pilot analysis on your fleet dataset</p>
                 </header>
 
-                <form name="contact" netlify>
+                <form name="contact" netlify-honeypot="bot-field" data-netlify="true" data-netlify-recaptcha="true">
                     <div class="grid">
                         <label>
                             Name
@@ -389,6 +389,12 @@
                         Message
                         <textarea name="message" placeholder="Tell us about your current fleet size and operations..." rows="4" required></textarea>
                     </label>
+                    <div class="hidden">
+                        <label>
+                            Don’t fill this out if you’re human: <input name="bot-field" type="text" />
+                        </label>
+                    </div>
+                    <div data-netlify-recaptcha="true"></div>
                     <button type="submit" class="contrast" style="width: 100%;">Submit Demo Request</button>
                 </form>
 
