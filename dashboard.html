@@ -1,0 +1,254 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVOROUTE Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Monoton&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <button id="theme-toggle-float" class="contrast" aria-label="Toggle dark mode">
+        <svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
+            <!-- The Mask that creates the crescent shape -->
+            <mask class="moon" id="moon-mask">
+                <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                <circle cx="12" cy="12" r="6" fill="black" />
+            </mask>
+
+            <!-- The Main Circle (Sun center / Moon body) -->
+            <circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="currentColor" />
+
+            <!-- The Sun Rays -->
+            <g class="sun-beams" stroke="currentColor" stroke-width="2px" stroke-linecap="round">
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </g>
+        </svg>
+    </button>
+
+    <main class="container">
+        <hgroup class="text-center">
+            <h1 class="monoton-regular">EVOROUTE</h1>
+            <p>GTFS Processing & Scheduling Dashboard</p>
+        </hgroup>
+
+        <!-- SETUP PANEL -->
+        <article id="setupPanel">
+
+            <section>
+                <header>
+                    <h4>Data Source Configuration</h4>
+                </header>
+
+                <div style="padding: var(--pico-block-spacing-vertical) var(--pico-block-spacing-horizontal);">
+
+                    <!-- Tabs -->
+                    <div role="group" class="mb-1">
+                        <button id="btn-tab-0" class="tab-btn">Database</button>
+                        <button id="btn-tab-1" class="tab-btn outline">Remote URL</button>
+                        <button id="btn-tab-2" class="tab-btn outline">Upload File</button>
+                    </div>
+
+                    <form onsubmit="return false;">
+                        <!-- Tab 0: Database -->
+                        <div id="tab-db" class="tab-content active">
+                            <fieldset class="grid">
+                                <label>Host <input type="text" id="dbHost" value="185.80.130.102" required></label>
+                                <label>Port <input type="number" id="dbPort" value="3306" required></label>
+                            </fieldset>
+                            <fieldset class="grid">
+                                <label>Database <input type="text" id="dbName" value="core" required></label>
+                                <label>Output Table <input type="text" id="dbTable" value="trip_outputs" required></label>
+                            </fieldset>
+                            <fieldset class="grid">
+                                <label>User <input type="text" id="dbUser" value="toks_api_user" required></label>
+                                <label>Password <input type="password" id="dbPass" value="36gey1qtew" required></label>
+                            </fieldset>
+                        </div>
+
+                        <!-- Tab 1: URL -->
+                        <div id="tab-url" class="tab-content">
+                            <label>
+                                GTFS Zip URL
+                                <input type="url" id="remoteUrl" placeholder="https://example.com/gtfs.zip">
+                                <small>Must be a direct link to a .zip file</small>
+                            </label>
+                        </div>
+
+                        <!-- Tab 2: File -->
+                        <div id="tab-file" class="tab-content">
+                            <label>
+                                Select Local GTFS Archive (.zip) (30 MB file size limit)
+                                <input type="file" id="fileInput" accept=".zip">
+                            </label>
+                            <article id="uploadStatusContainer" class="notice-info" style="display: none; margin-top: 1rem; padding: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div id="uploadSpinner" aria-busy="true" style="display: none"></div>
+                                    <div style="flex-grow: 1;">
+                                        <strong id="uploadStatusText">Verifying...</strong>
+                                        <p id="uploadStatusDetail" style="font-size: 0.8rem; margin: 0;"></p>
+                                    </div>
+                                </div>
+                            </article>
+
+                        </div>
+                    </form>
+
+                    <hr />
+
+                    <fieldset>
+                        <legend>
+                            Action to Perform
+                        </legend>
+                        <div class="grid">
+                            <label>
+                                <input type="radio" id="radFresh" name="sourceMode" value="FRESH" checked>
+                                Refresh Data from Source
+                            </label>
+                            <label>
+                                <input type="radio" id="radCache" name="sourceMode" value="CACHE" disabled>
+                                Use Cached Data
+                                <!-- Badge is now SPAN, styles handled by CSS -->
+                                <span id="cacheStatusBadge" class="badge hidden">CHECKING...</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                </div>
+            </section>
+
+            <section>
+                <header>
+                    <h4>Pipeline Options</h4>
+                </header>
+
+
+                <div style="padding: var(--pico-block-spacing-vertical) var(--pico-block-spacing-horizontal);">
+                    <div class="grid">
+                        <label>
+                            Algorithm Strategy
+                            <select id="sharedAlgo">
+                                <option value="Algo-M">Fast</option>
+                                <option value="Algo-D">Optimal</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <label style="margin-top: 1rem; display:block; margin-bottom: 0.5rem;"><small>Execution Steps</small></label>
+                    <div class="grid boxed-grid">
+                        <label title="Saves the downloaded data to local storage">
+                            <input type="checkbox" id="optCache" checked> Update Cache
+                        </label>
+                        <label title="Runs the core scheduler math">
+                            <input type="checkbox" id="optCompute" checked> Run Compute
+                        </label>
+                        <label title="Merges result sets">
+                            <input type="checkbox" id="optAggregate" checked> Aggregate
+                        </label>
+                        <label title="Writes final data to your SQL Table">
+                            <input type="checkbox" id="optUpdateDb"> Update DB
+                        </label>
+                    </div>
+                </div>
+
+
+            </section>
+            <button id="startJobBtn" class="contrast" style="margin-top: 2rem; width: 100%;">Start Operation</button>
+        </article>
+
+        <!-- JOB MONITORING PANEL -->
+        <article id="jobPanel" class="hidden">
+            <header>
+                <div class="flex-between" style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong>Job ID: <small id="jobIdDisplay" style="color: var(--pico-primary);">...</small></strong>
+                    <div style="text-align: right;">
+                        <span id="timerDisplay" style="font-family: monospace; font-size: 1.2rem; margin-right: 1rem;">00:00</span>
+                        <mark id="statusBadge">READY</mark>
+                    </div>
+                </div>
+            </header>
+
+            <label for="progressBar">Job Progress</label>
+            <progress id="progressBar" value="0" max="100"></progress>
+
+            <details>
+                <summary>
+                    Detailed Phase Status (<span id="activePhaseCount">0</span>)
+                </summary>
+                <!-- This container will be populated by JS -->
+                <div id="phaseDetails" class="grid"></div>
+            </details>
+
+            <footer>
+                <div class="grid">
+                    <button id="cancelBtn" class="secondary">Cancel Job</button>
+                    <button id="resetBtn" class="hidden contrast">Start New Job</button>
+                    <a id="downloadBtn" href="#" role="button" class="hidden">Download CSV</a>
+                </div>
+            </footer>
+
+        </article>
+
+
+        <!-- LOGS -->
+        <article>
+            <details>
+                <summary class="secondary">System Logs</summary>
+                <div id="debugLog"></div>
+            </details>
+        </article>
+
+        <!-- DIALOGS -->
+        <dialog id="errorDialog">
+            <article>
+                <header>
+                    <button aria-label="Close" rel="prev" onclick="document.getElementById('errorDialog').close()"></button>
+                    <strong>Error</strong>
+                </header>
+                <p id="errorMessage">An error occurred.</p>
+                <footer>
+                    <button onclick="document.getElementById('errorDialog').close()" class="secondary">Close</button>
+                </footer>
+            </article>
+        </dialog>
+
+        <dialog id="confirmDialog">
+            <article>
+                <header>
+                    <strong>Confirm Action</strong>
+                </header>
+                <p id="confirmMessage">Are you sure?</p>
+                <footer>
+                    <div class="grid">
+                        <button id="cancelConfirmBtn" class="secondary" onclick="document.getElementById('confirmDialog').close()">Cancel</button>
+                        <button id="confirmBtn" autofocus>Confirm</button>
+                    </div>
+                </footer>
+            </article>
+        </dialog>
+    </main>
+
+    <!-- TEMPLATES -->
+    <template id="phase-template">
+        <div class="phase-card" style="margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                <strong class="phase-name">Setup</strong>
+                <span class="phase-percent">0%</span>
+            </div>
+            <progress class="phase-bar-fill" value="0" max="100"></progress>
+        </div>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html>

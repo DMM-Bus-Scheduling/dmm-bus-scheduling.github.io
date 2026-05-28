@@ -1,0 +1,1929 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Multi-Task Vehicle Simulation</title>
+    <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
+    <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet' />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+
+
+        html, body {
+            margin: 0;
+            border: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        #map {
+            width: 100%;
+            height: 60%;
+        }
+
+        #controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            padding-top: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 30;
+        }
+        .group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Make timeline feel like the main element */
+        .timeline input[type="range"] {
+            width: 600px; /* slightly smaller = better balance */
+        }
+
+        /*
+        canvas {
+            cursor: grab;
+        }
+
+            canvas:active {
+                cursor: grabbing;
+            }*/
+
+        #vehicle-panel {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            margin: 10px 10px 0 0;
+            width: 300px;
+            min-height: 80px;
+            max-height: calc(60% - 200px);
+            background: rgba(255,255,255, 1);
+            border-radius: 4px;
+            padding: 10px;
+            font-family: Arial,sans-serif;
+            font-size: 14px;
+            overflow-y: auto;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, .1);
+        }
+
+            #vehicle-panel h3 {
+                margin-top: 0;
+                font-size: 16px;
+                text-align: center;
+            }
+
+        .battery-container {
+            margin: 6px 0;
+            background: #eee;
+            border-radius: 4px;
+            height: 16px;
+            width: 100%;
+            position: relative;
+        }
+
+        .battery-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.2s;
+        }
+
+        #vehicle-details p {
+            margin: 4px 0;
+        }
+        /*
+        .control-row {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }*/
+
+        #gantt-wrapper {
+            height: 40%;
+            position: relative;
+        }
+
+        #gantt-container {
+            height: 100%;
+            overflow: auto;
+            display: grid;
+            grid-template-columns: auto 1fr; /* left column + main area */
+            grid-template-rows: auto 1fr; /* header row auto-sized */
+        }
+
+        #gantt-scroll-wrapper {
+            grid-column: 2;
+            grid-row: 2;
+            position: relative;
+            min-height: 0;
+            min-width: 0;
+        }
+
+        /* Grid placement of wrappers */
+        #left-column-header {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            font-size: 12px;
+            grid-row: 1;
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 20;
+            text-align: center;
+            padding-top: 20px;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        #timeline-wrapper {
+            grid-column: 2;
+            grid-row: 1;
+            position: sticky;
+            top: 0;
+            z-index: 15;
+            background: white;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #left-column-body {
+            grid-column: 1;
+            grid-row: 2;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            border-right: 0px solid #ccc;
+        }
+
+
+        #battery-canvas,
+        #timeline-canvas,
+        #battery-body-canvas,
+        #gantt-canvas,
+        #gantt-playhead-canvas {
+            display: block; /* remove inline spacing */
+        }
+
+        /* Playhead overlay */
+        #gantt-playhead-canvas {
+            position: absolute;
+            top: 0;
+            left: 0px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #battery-tooltip {
+            font-family: Consolas, monospace;
+            position: absolute;
+            pointer-events: none;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+            z-index: 25;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="gantt-wrapper">
+        <div id="controls">
+            <div class="group playback">
+                <button id="playBtn">Play</button>
+                <button id="pauseBtn">Pause</button>
+                <span>Speed:</span>
+                <select id="speedSelect">
+                    <option value="1">1x</option>
+                    <option value="10">10x</option>
+                    <option value="60" selected>60x</option>
+                    <option value="600">600x</option>
+                </select>
+            </div>
+
+            <div class="group timeline">
+                <input type="range" id="timeSlider" min="0" max="172800" value="0" step="1">
+                <span id="timeDisplay">Day 0 00:00:00</span>
+            </div>
+
+            <div class="group option">
+                <input type="checkbox" id="autoScrollBtn" checked>
+                <label for="autoScrollBtn">Auto-Scroll Timeline</label>
+            </div>
+        </div>
+        <div id="gantt-container">
+            <!-- Top-left: battery header (optional, if any) -->
+            <div id="left-column-header">
+                Battery levels
+            </div>
+
+            <!-- Top-right: timeline -->
+            <div id="timeline-wrapper">
+                <canvas id="timeline-canvas"></canvas>
+            </div>
+
+            <!-- Bottom-left: battery column (labels) -->
+            <div id="left-column-body">
+                <canvas id="battery-canvas"></canvas>
+            </div>
+
+
+            <!-- Bottom-right: Gantt scrollable content -->
+            <div id="gantt-scroll-wrapper">
+                <canvas id="gantt-canvas"></canvas>
+                <canvas id="gantt-playhead-canvas"></canvas>
+            </div>
+        </div>
+        <pre id="battery-tooltip"></pre>
+
+    </div>
+
+
+    <div id="vehicle-panel">
+        <h3>Vehicle Details</h3>
+        <div id="vehicle-details"><p>Select a vehicle to see details</p></div>
+    </div>
+
+    
+
+    <script>
+        // =======================
+        // 1️⃣ GLOBAL STATE
+        // =======================
+        const ganttWrapper = document.getElementById("gantt-wrapper");
+        const batteryCanvas = document.getElementById("battery-canvas");
+        const ctxBattery = batteryCanvas.getContext("2d");
+        const ganttContainer = document.getElementById("gantt-container");
+        const ganttCanvas = document.getElementById("gantt-canvas");
+        const ctxGantt = ganttCanvas.getContext("2d");
+        const playheadCanvas = document.getElementById("gantt-playhead-canvas");
+        const ctxPlayhead = playheadCanvas.getContext("2d");
+        const timelineCanvas = document.getElementById("timeline-canvas");
+        const ctxTimeline = timelineCanvas.getContext("2d");
+        const batteryTooltip = document.getElementById("battery-tooltip");
+        const autoScrollBtn = document.getElementById("autoScrollBtn");
+
+        const rowHeight = 100;
+        const taskHeight = 60;
+        const batteryHeight = 25;
+        const timeScale = 8;
+        const sidebarLeft = 120;
+        const paddingLeft = 60;
+        const paddingTop = 0;
+        const paddingRight = 60;
+        const timelineHeight = 60;
+
+        const state = {
+            simTime: 0, simSpeed: 60, maxSimTime: 0, running: true, selectedVehicleId: null, currentTripId: null, _lastPanelState: "empty", shouldFollow: false
+        };
+        let routes = {};
+        let vehicles = [];
+
+        const SCROLLBAR_THICKNESS = getSystemScrollbarThickness();
+
+        const disableAutoScroll = () => {
+            autoScrollBtn.checked = false;
+
+        };
+
+        ganttContainer.addEventListener('wheel', disableAutoScroll, { passive: true });
+        ganttContainer.addEventListener('pointerdown', (e) => {
+            // Ensure they clicked the element itself
+            if (e.target !== ganttContainer) return;
+            const el = e.target;
+
+            // If scrollbar thickness is 0 (macOS/Mobile overlays), dragging isn't applicable
+            if (SCROLLBAR_THICKNESS === 0) return;
+
+            const onHorizontal = e.offsetY >= el.clientHeight &&
+                e.offsetY <= (el.clientHeight + SCROLLBAR_THICKNESS);
+
+            const hasHorizontalScrollbar = el.scrollWidth > el.clientWidth;
+
+            if (onHorizontal && hasHorizontalScrollbar) {
+                disableAutoScroll();
+            }
+        }, { passive: true });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.code === "Space") {
+                event.preventDefault();
+                state.running = !state.running;
+            }
+        });
+
+
+        // =======================
+        // 2️⃣ SELECTION LOGIC (NEW)
+        // =======================
+        async function selectVehicle(id) {
+            state.selectedVehicleId = id;
+
+            if (id == null) {
+                //highlightedVehicleMarker.remove();
+                state.currentTripId = null;
+            } else {
+                zoomToVehicle(id);
+
+                const v = vehicles.find(veh => veh.id === id);
+                if (v && v.lastPosition) {
+
+
+
+                    //highlightedVehicleMarker.setLngLat([v.lastPosition[1], v.lastPosition[0]]).addTo(map);
+
+                    if (v.currentTaskIndex != null)
+                        state.currentTripId = v.tasks[v.currentTaskIndex].trip_id;
+
+                    // Auto-scroll the Gantt chart vertically to bring this vehicle into focus
+                    const index = vehicles.findIndex(veh => veh.id === id);
+                    const yPos = paddingTop + index * rowHeight;
+                    const ganttChartHeight = ganttContainer.clientHeight - timelineHeight;
+                    const currentScrollTop = ganttContainer.scrollTop;
+
+                    const topLine = yPos;
+                    const bottomLine = topLine + rowHeight;
+
+                    if (topLine < (currentScrollTop) || bottomLine > (currentScrollTop + ganttChartHeight)) {
+
+                        /*
+                        ganttContainer.scrollTo({
+                            top: Math.max(0, yPos - ganttChartHeight/2 + rowHeight / 2),
+                            behavior: 'auto'
+                        });*/
+
+                        let scrollPos = Math.max(0, topLine + rowHeight / 2 - ganttChartHeight / 2);
+                        await manualSmoothScroll(ganttContainer, { top: scrollPos }, 500);
+                    }
+
+                }
+            }
+
+            highlightSelectedVehicle();
+            updateVehiclePanel();
+            syncGeoJSONAndMap();
+            renderGanttBackground();
+        }
+
+        async function manualSmoothScroll(element, target = {}, duration = 500) {
+            return new Promise(resolve => {
+                const startX = element.scrollLeft;
+                const startY = element.scrollTop;
+
+                const distanceX = (target.left ?? startX) - startX;
+                const distanceY = (target.top ?? startY) - startY;
+
+                const startTime = performance.now();
+
+                function animate(time) {
+                    const elapsed = time - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = ease(progress);
+
+                    if (distanceX !== 0) element.scrollLeft = startX + distanceX * eased;
+                    if (distanceY !== 0) element.scrollTop = startY + distanceY * eased;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        resolve();
+                    }
+                }
+
+                function ease(t) {
+                    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // easeInOut
+                }
+
+                requestAnimationFrame(animate);
+            });
+        }
+
+
+        // Handle clicking on either canvas area
+        function handleGanttClick(e) {
+            const rect = e.target.getBoundingClientRect();
+            const mouseY = e.clientY - rect.top;
+            const vehicleIndex = Math.floor((mouseY - paddingTop) / rowHeight);
+
+            if (mouseY >= paddingTop && vehicleIndex >= 0 && vehicleIndex < vehicles.length) {
+                selectVehicle(vehicles[vehicleIndex].id);
+            } else {
+                selectVehicle(null);
+            }
+        }
+
+        batteryCanvas.addEventListener('click', handleGanttClick);
+        ganttCanvas.addEventListener('click', handleGanttClick);
+
+        class TimelineScrubber {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.isDragging = false;
+                this.pointerDown = false;
+                this.startX = 0;
+                this.startY = 0;
+                this.dragStartMinutes = 0; // NEW: Saves the exact time clicked
+                this.THRESHOLD = 5;
+                this.animationFrameId = null;
+                this.wasRunningBeforeDrag = false;
+
+                this.initListeners();
+            }
+
+            getCanvasLocalX(clientX) {
+                const rect = this.canvas.getBoundingClientRect();
+                return clientX - rect.left;
+            }
+
+            initListeners() {
+                this.canvas.style.cursor = "pointer"; // default
+
+                this.canvas.addEventListener("pointerdown", (e) => {
+                    this.canvas.style.cursor = "ew-resize"; // when pressed
+
+                    this.startX = e.clientX;
+                    this.startY = e.clientY;
+                    this.pointerDown = true;
+                    this.isDragging = false;
+
+                    const localX = this.getCanvasLocalX(e.clientX);
+                    //this.dragStartMinutes = Math.max(0, (localX - paddingLeft) / timeScale);
+                    this.dragStartMinutes = state.simTime / 60;
+
+                    this.canvas.setPointerCapture(e.pointerId);
+                });
+
+                this.canvas.addEventListener("pointermove", (e) => {
+                    if (!this.pointerDown) return;
+
+                    if (!this.isDragging) {
+                        const dx = e.clientX - this.startX;
+                        const dy = e.clientY - this.startY;
+                        if (Math.hypot(dx, dy) > this.THRESHOLD) {
+                            this.isDragging = true;
+
+                            this.canvas.style.cursor = "ew-resize"; // dragging cursor
+
+                            this.wasRunningBeforeDrag = state.running;
+                            state.running = false;
+                        }
+                    }
+
+                    if (this.isDragging && !this.animationFrameId) {
+                        this.animationFrameId = requestAnimationFrame(() => {
+                            const totalPhysicalDx = e.clientX - this.startX;
+                            const deltaMinutes = totalPhysicalDx / timeScale;
+                            const minutes = Math.max(0, this.dragStartMinutes + deltaMinutes);
+
+                            updateGanttPlayhead(minutes, 0);
+
+                            this.animationFrameId = null;
+                        });
+                    }
+                });
+
+                const handlePointerUp = (e) => {
+                    if (!this.pointerDown) return;
+
+                    this.pointerDown = false;
+                    this.canvas.releasePointerCapture(e.pointerId);
+
+                    this.canvas.style.cursor = "pointer"; // reset
+
+                    if (this.animationFrameId) {
+                        cancelAnimationFrame(this.animationFrameId);
+                        this.animationFrameId = null;
+                    }
+
+                    if (this.isDragging) {
+                        this.isDragging = false;
+
+                        if (this.wasRunningBeforeDrag) {
+                            state.running = true;
+                        }
+                    } else {
+                        const mouseX = this.getCanvasLocalX(e.clientX);
+                        const minutes = Math.max(0, (mouseX - paddingLeft) / timeScale);
+                        updateGanttPlayhead(minutes, 500);
+                    }
+                };
+
+                this.canvas.addEventListener("pointerup", handlePointerUp);
+                this.canvas.addEventListener("pointercancel", handlePointerUp);
+            }
+        }
+
+        // Instantiate the class
+        const scrubber = new TimelineScrubber(timelineCanvas);
+
+
+
+        // =======================
+        // 3️⃣ MAP INITIALIZATION
+        // =======================
+        const map = new maplibregl.Map({
+            container: "map",
+            style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+            center: [25.28, 54.68],
+            zoom: 11,
+            fadeDuration: 0,
+            crossSourceCollisions : false,
+
+        });
+
+        const timeSlider = document.getElementById("timeSlider");
+        const timeDisplay = document.getElementById("timeDisplay");
+
+        let vehiclesGeoJSON = { type: "FeatureCollection", features: [] };
+        //const highlightedVehicleMarker = new maplibregl.Marker({ color: "#F1C40F", anchor: "center" });
+
+        map.on("load", async () => {
+            //await loadRoutesBIN('/compute/results/1_477718/trips.bin');
+            await loadRoutesJSON('/compute/results/1_477718/trips.json');
+            await parseCSVTasks('/compute/results/1_477718/bus_schedules_processed.csv');
+
+            state.maxSimTime = computeSimulationEnd() + 1;
+            timeSlider.max = state.maxSimTime;
+            state.simTime = computeSimulationStart() - 1;
+            timeSlider.min = state.simTime;
+
+            //console.table(routes);
+
+            initMapLayers();
+            initVehicleGeoJSON();
+            renderGanttBackground();
+            drawTimeline();
+            startSimulation();
+        });
+
+        // =======================
+        // 4️⃣ CSV PARSER
+        // =======================
+        async function parseCSVTasks(url) {
+            const csvText = await fetch(url).then(r => r.text());
+            const lines = csvText.split('\n').filter(l => l.trim() && !l.startsWith('bus_idx'));
+            const vehicleTasks = {};
+            lines.forEach(line => {
+                const [bus_idx, start_time, start_battery, status, route, trip_id, from, to, duration, cost_km, end_battery, end_time, bus_type] = line.split(',');
+                const idx = +bus_idx;
+                if (!vehicleTasks[idx]) vehicleTasks[idx] = [];
+                vehicleTasks[idx].push({
+                    start_time: +start_time,
+                    start_battery: +start_battery,
+                    status, route, trip_id, from: +from, to: +to,
+                    duration: +duration, cost_km: +cost_km,
+                    end_battery: +end_battery, end_time: +end_time,
+                    bus_type: +bus_type
+                });
+            });
+
+
+            vehicles = Object.entries(vehicleTasks).map(([id, tasks]) => {
+                tasks.sort((a, b) => a.start_time - b.start_time);
+                //console.log([routes[tasks[0].trip_id]?.Geometry[1], routes[tasks[0].trip_id]?.Geometry[0]]);
+
+                return {
+                    id: +id, tasks, currentTaskIndex: null, currentSegmentIndex: null,
+                    battery: tasks[0].start_battery, maxBattery: tasks[0].start_battery,
+                    lastPosition: [routes[tasks[0].trip_id]?.Geometry[0], routes[tasks[0].trip_id]?.Geometry[1]] || [0, 0], speed: 0, lastTripId: null,
+                };
+            });
+        }
+
+        async function loadRoutesJSON(url) {
+            const res = await fetch(url);
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch routes: ${res.status} ${res.statusText}`);
+            }
+
+            const data = await res.json();
+
+            routes = {};
+
+            for (const r of data) {
+
+                routes[r.id] = {
+                    Id: r.id,
+                    TotalDistance: r.totalDistance,
+                    TotalTime: r.totalTime,
+
+                    Geometry: new Float32Array(r.geometry),
+
+                    SegmentDistances: new Float32Array(r.segmentDistances),
+                    SegmentDurations: new Float32Array(r.segmentDurations),
+                    CumulativeTimes: new Float32Array(r.cumulativeTimes),
+                    CumulativeDistances: new Float32Array(r.cumulativeDistances)
+                };
+            }
+        }
+
+        /*
+        async function loadRoutesJSON(url) {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Failed to fetch routes");
+
+            const data = await res.json();
+
+            for (const r of data) {
+
+                // convert flat coordinate list → [lat, lon] pairs
+                const geometry = [];
+                for (let i = 0; i < r.geometry.length; i += 2) {
+                    geometry.push([r.geometry[i], r.geometry[i + 1]]);
+                }
+
+                routes[r.id] = {
+                    Id: r.id,
+                    TotalDistance: r.totalDistance,
+                    TotalTime: r.totalTime,
+                    Geometry: geometry,
+                    SegmentDistances: r.segmentDistances,
+                    SegmentDurations: r.segmentDurations,
+                    CumulativeTimes: r.cumulativeTimes,
+                    CumulativeDistances: r.cumulativeDistances
+                };
+            }
+
+            console.log(routes);
+        }*/
+
+        /*
+        async function loadRoutesBIN(url) {
+            const buffer = await fetch(url).then(r => r.arrayBuffer());
+            const view = new DataView(buffer);
+            let offset = 0;
+            const numRoutes = view.getInt32(offset, true);
+            offset += 4;
+
+            for (let r = 0; r < numRoutes; r++) {
+                const idLength = view.getInt32(offset, true);
+                offset += 4;
+                let id = null;
+                if (idLength > 0) {
+                    const bytes = new Uint8Array(buffer, offset, idLength);
+                    id = new TextDecoder().decode(bytes);
+                    offset += idLength;
+                }
+                const totalDistance = view.getFloat32(offset, true); offset += 4;
+                const totalTime = view.getFloat32(offset, true); offset += 4;
+                const numCoords = view.getUint16(offset, true); offset += 2;
+                const numSegments = view.getUint16(offset, true); offset += 2;
+
+                const geometry = [];
+                for (let i = 0; i < numCoords; i++) {
+                    const lat = view.getFloat32(offset, true); offset += 4;
+                    const lon = view.getFloat32(offset, true); offset += 4;
+                    geometry.push([lat, lon]);
+                }
+
+                const segDist = [];
+                for (let i = 0; i < numSegments; i++) {
+                    segDist.push(view.getFloat32(offset, true)); offset += 4;
+                }
+
+                const segDur = [];
+                for (let i = 0; i < numSegments; i++) {
+                    segDur.push(view.getFloat32(offset, true)); offset += 4;
+                }
+
+                const cumTimes = [];
+                for (let i = 0; i < numSegments + 1; i++) {
+                    cumTimes.push(view.getFloat32(offset, true)); offset += 4;
+                }
+
+                const cumDist = [];
+                for (let i = 0; i < numSegments + 1; i++) {
+                    cumDist.push(view.getFloat32(offset, true)); offset += 4;
+                }
+
+                routes[id] = {
+                    Id: id, TotalDistance: totalDistance, TotalTime: totalTime, Geometry: geometry,
+                    SegmentDistances: segDist, SegmentDurations: segDur, CumulativeTimes: cumTimes, CumulativeDistances: cumDist,
+                };
+            }
+        }*/
+        async function loadRoutesBIN(url) {
+            const res = await fetch(url);
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch routes: ${res.status} ${res.statusText}`);
+            }
+
+            const buffer = await res.arrayBuffer();
+
+            const view = new DataView(buffer);
+            const decoder = new TextDecoder();
+
+            let offset = 0;
+
+            const numRoutes = view.getInt32(offset, true);
+            offset += 4;
+
+            for (let r = 0; r < numRoutes; r++) {
+
+                const idLength = view.getInt32(offset, true);
+                offset += 4;
+
+                let id = null;
+
+                if (idLength > 0) {
+                    const bytes = new Uint8Array(buffer, offset, idLength);
+                    id = decoder.decode(bytes);
+                    offset += idLength;
+                }
+
+                offset = (offset + 3) & ~3;
+
+                const totalDistance = view.getFloat32(offset, true); offset += 4;
+                const totalTime = view.getFloat32(offset, true); offset += 4;
+
+                const numCoords = view.getUint16(offset, true); offset += 2;
+                const numSegments = view.getUint16(offset, true); offset += 2;
+
+                // geometry: [lat0, lon0, lat1, lon1 ...]
+                const geometry = new Float32Array(buffer, offset, numCoords * 2);
+                offset += numCoords * 8;
+
+                const segDist = new Float32Array(buffer, offset, numSegments);
+                offset += numSegments * 4;
+
+                const segDur = new Float32Array(buffer, offset, numSegments);
+                offset += numSegments * 4;
+
+                const cumTimes = new Float32Array(buffer, offset, numSegments + 1);
+                offset += (numSegments + 1) * 4;
+
+                const cumDist = new Float32Array(buffer, offset, numSegments + 1);
+                offset += (numSegments + 1) * 4;
+
+                routes[id] = {
+                    Id: id,
+                    TotalDistance: totalDistance,
+                    TotalTime: totalTime,
+
+                    Geometry: geometry,
+                    SegmentDistances: segDist,
+                    SegmentDurations: segDur,
+                    CumulativeTimes: cumTimes,
+                    CumulativeDistances: cumDist
+                };
+            }
+        }
+
+
+        // =======================
+        // 5️⃣ MAP LAYERS
+        // =======================
+
+        function initMapLayers() {
+            //map.showCollisionBoxes = true;
+            //map.crossSourceCollisions = false;
+
+            /*
+            map.addControl(
+                new maplibregl.ScaleControl({
+                    maxWidth: 200,
+                    unit: 'metric'
+                }),
+                'bottom-right'
+            );*/
+
+
+   
+
+            map.addControl(new maplibregl.FullscreenControl(), 'bottom-right');
+            map.addControl(new maplibregl.NavigationControl({
+                showCompass: true,
+                showZoom: true,
+                visualizePitch: true,
+                visualizeRoll: true
+            }), 'bottom-right');
+
+
+            map.addSource("vehicles", {
+                type: "geojson", data: vehiclesGeoJSON, cluster: true, clusterMinPoints: 4, promoteId: "id",
+                clusterMaxZoom: 14, clusterRadius: 25
+            });
+
+            map.addSource("selected-route", { type: "geojson", data: emptyFeatureCollection() });
+
+            map.addLayer({ id: "selected-route-layer", type: "line", source: "selected-route", paint: { "line-color": "#F1C40F", "line-width": 5 } });
+
+            map.addLayer({
+                id: "clusters", type: "circle", source: "vehicles", filter: ["has", "point_count"],
+                paint: {
+                    "circle-color": ["step", ["get", "point_count"], "#2ECC71", 10, "#F1C40F", 30, "#E74C3C"],
+                    "circle-radius": ["step", ["get", "point_count"], 18, 10, 25, 30, 35],
+                    "circle-stroke-width": 2, "circle-stroke-color": "#ffffff"
+                }
+            });
+
+            map.addLayer({
+                id: "cluster-count", type: "symbol", source: "vehicles", filter: ["has", "point_count"],
+                layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 12 },
+                paint: { "text-color": "#000000" }
+            });
+
+
+            map.addLayer({
+                id: "vehicles-layer", type: "circle", source: "vehicles", filter: ["!", ["has", "point_count"]],
+                layout: {
+                    // Force strict Z-ordering so circles never flicker
+                    "circle-sort-key": ["get", "sort_key"]
+                },
+                paint: {
+                    "circle-radius": [
+                        "case",
+                        ["boolean", ["feature-state", "selected"], false], 12, 9
+                    ],
+                    "circle-color": [
+                        //"case",
+                        //["boolean", ["feature-state", "selected"], false], "#FFD700",
+                        //[
+                            "interpolate", ["linear"], ["number", ["feature-state", "battery_pct"], 1],
+                            0, "#E74C3C", 0.5, "#F1C40F", 1, "#2ECC71"
+                        //]
+                    ],
+                    "circle-stroke-width":[
+                        'case',
+                        ['boolean', ['feature-state', 'selected'], false],
+                        4,
+                        2
+                    ],
+                    "circle-stroke-color": [
+                        'case',
+                        ['boolean', ['feature-state', 'selected'], false],
+                        "#FFD700",
+                        "#2C2C2C"
+                    ]
+
+                       
+                }
+                /*
+                'circle-stroke-width': [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    2,
+                    0
+                ],
+                'circle-stroke-color': '#ff0000'*/
+            });
+
+
+
+            map.addLayer({
+                id: "vehicle-labels-layer", type: "symbol", source: "vehicles", filter: ["!", ["has", "point_count"]],
+                layout: {
+                    "text-field": ["to-string", ["get", "id"]],
+                    "text-size": 12,
+                    "text-anchor": "center",
+
+                    "text-ignore-placement": false,
+                    "icon-ignore-placement": false,
+
+                    "text-overlap": "never",
+                    "icon-overlap": "never",
+
+                    "symbol-sort-key": ["*", -1, ["get", "sort_key"]],
+
+                    "text-padding": 4,
+                    "icon-padding": 2
+                },
+                //layout: {
+                //    "text-field": ["get", "label"], "text-size": 11, "text-offset": [0, 1.5], "text-anchor": "top",
+                //    "text-allow-overlap": true, "text-ignore-placement": true, "icon-allow-overlap": true
+                //},
+                paint: { "text-color": "#000000", "text-halo-color": "rgba(255,255,255,0.8)", "text-halo-width": 1 }
+            });
+
+            map.on("click", "clusters", async (e) => {
+                const feature = e.features[0];
+                const clusterId = feature.properties.cluster_id;
+                const source = map.getSource("vehicles");
+                try {
+                    const zoom = await source.getClusterExpansionZoom(clusterId);
+                    map.easeTo({ center: feature.geometry.coordinates, zoom: zoom, duration: 600 });
+                } catch (err) {
+                    map.easeTo({ center: feature.geometry.coordinates, zoom: map.getZoom() + 2 });
+                }
+            });
+
+            map.on("click", "vehicles-layer", (e) => {
+                if (!e.features || !e.features.length) return;
+
+                const feature = e.features[0];
+                const vehicleId = feature.properties.id;
+
+                selectVehicle(vehicleId);
+            });
+
+            // If empty map is clicked, deselect
+            map.on("click", (e) => {
+                // Ensure clicking clusters does not deselect
+                const features = map.queryRenderedFeatures(e.point, { layers: ["vehicles-layer", "clusters"] });
+                if (features.length === 0) {
+                    selectVehicle(null);
+                }
+            });
+
+            map.on("mousemove", (e) => {
+                const features = map.queryRenderedFeatures(e.point, { layers: ["vehicles-layer", "clusters"] });
+                map.getCanvas().style.cursor = features.length > 0 ? "pointer" : "";
+            });
+
+            //console.table(map.getStyle().layers, ['id', 'type']);
+        }
+
+        // =======================
+        // 6️⃣ VEHICLE GEOJSON INIT
+        // =======================
+        function initVehicleGeoJSON() {
+            vehiclesGeoJSON.features = vehicles.map(v => ({
+                type: "Feature",
+                //id: v.id, // ID must be here for setFeatureState!
+                properties: { id: v.id },
+                geometry: { type: "Point", coordinates: [v.lastPosition[1], v.lastPosition[0]] }
+            }));
+            map.getSource("vehicles").setData(vehiclesGeoJSON);
+        }
+
+
+        // =======================
+        // 7️⃣ INTERPOLATION
+        // =======================
+        function interpolate(route, elapsed, vehicle) {
+            if (elapsed <= 0) return [route.Geometry[0], route.Geometry[1]];
+            if (elapsed >= route.TotalTime) return [route.Geometry.at(-2), route.Geometry.at(-1)];
+
+            const times = route.CumulativeTimes;
+            const geom = route.Geometry;
+
+            if (route.TotalDistance === 0) {
+                vehicle.currentSegmentIndex = null;
+                return vehicle.lastPosition;
+            }
+
+            let low = 0, high = times.length - 1;
+            while (low < high) {
+                const mid = (low + high) >> 1;
+                if (times[mid] < elapsed) low = mid + 1;
+                else high = mid;
+            }
+
+            const segIndex = Math.max(0, low - 1);
+            vehicle.currentSegmentIndex = segIndex;
+            const segStartTime = times[segIndex];
+            const segDuration = route.SegmentDurations[segIndex];
+            const progress = segDuration > 0 ? (elapsed - segStartTime) / segDuration : 0;
+            const from = [geom[segIndex * 2], geom[segIndex * 2 + 1]];
+            const to = [geom[(segIndex + 1) * 2], geom[(segIndex + 1) * 2 + 1]];
+
+            return [from[0] + (to[0] - from[0]) * progress, from[1] + (to[1] - from[1]) * progress];
+        }
+
+        // =======================
+        // 8️⃣ SIMULATION LOOP
+        // =======================
+        function computeSimulationEnd() {
+            let max = 0;
+            vehicles.forEach(v => {
+                const last = v.tasks[v.tasks.length - 1];
+                if (last.end_time * 60 > max) max = last.end_time * 60;
+            });
+            return max;
+        }
+
+        function computeSimulationStart() {
+            let min = 9999999999;
+            vehicles.forEach(v => {
+                const first = v.tasks[0];
+                if (first.start_time * 60 < min) min = first.start_time * 60;
+            });
+            return min;
+        }
+
+        function startSimulation() {
+            let last = performance.now();
+            let lastMapUpdate = 0;
+            function frame(now) {
+                const delta = Math.min((now - last) / 1000, 0.1);
+                last = now;
+                //pulse(now);
+                if (state.running) {
+                    state.simTime += delta * state.simSpeed;
+                    if (state.simTime > state.maxSimTime)
+                        state.running = false;
+                    updateTimeSlider();
+                    updateVehicles();
+                    updateGanttPlayhead();
+                    syncGeoJSONAndMap();
+
+                }
+                if (now - lastMapUpdate > 100) {
+                    drawBatteryBars();
+                    updateVehiclePanel();
+                    if (lastMouseEvent) {
+                        updateTooltip(lastMouseEvent);
+                    }
+                    lastMapUpdate = now;
+                }
+                requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
+        }
+
+        function syncGeoJSONAndMap() {
+            vehicles.forEach((v, i) => {
+                map.setFeatureState(
+                    { source: 'vehicles', id: v.id },
+                    {
+                        battery_pct: v.battery / v.maxBattery,
+                        selected: v.id === state.selectedVehicleId
+                    }
+                );
+                const pos = v.lastPosition || [0, 0];
+                const lngLat = [pos[1], pos[0]];
+                const isSelected = v.id === state.selectedVehicleId;
+
+                if (isSelected) {
+                    // setCenter is cleaner and automatically preserves zoom, pitch, and bearing
+                    if (state.shouldFollow) {
+                        map.setCenter(lngLat);
+                    }
+                    // Note: If you want a smooth camera pan instead of a jump, use:
+                     //map.panTo(lngLat, { duration: 200 });
+
+                    /*
+                    highlightedVehicleMarker.setLngLat([pos[1], pos[0]]);
+                    if (state.shouldFollow) {
+                        map.jumpTo(
+                            {
+                                center: [pos[1], pos[0]],
+                                zoom: map.getZoom(),
+                                bearing: map.getBearing(),
+                                pitch: map.getPitch()
+                            }
+                        );
+                    }*/ 
+                }
+                const feat = vehiclesGeoJSON.features[i];
+                feat.geometry.coordinates = [pos[1], pos[0]];
+                feat.properties.sort_key = (v.id === state.selectedVehicleId) ? 100000 : v.id;
+                //feat.properties.label = `ID:${v.id} B:${v.battery.toFixed(0)}km S:${v.currentSegmentIndex} V:${v.speed.toFixed(1)}km/h`;
+
+            });
+            map.getSource("vehicles").setData(vehiclesGeoJSON);
+        }
+
+        // =======================
+        // 9️⃣ UPDATE VEHICLES
+        // =======================
+        function getActiveTask(v) {
+            const simMinutes = state.simTime / 60;
+            if (v.tasks.length === 0) return null;
+            let index = 0;
+            let task = v.tasks[index];
+            if (simMinutes < task.start_time) {
+                v.currentTaskIndex = null;
+                return null;
+            }
+            while (task && simMinutes > task.end_time && index < v.tasks.length - 1) {
+                index++;
+                task = v.tasks[index];
+            }
+            if (simMinutes < task.start_time || simMinutes > task.end_time) {
+                v.currentTaskIndex = null;
+                return null;
+            }
+            v.currentTaskIndex = index;
+            return task;
+        }
+
+        function normalizeId(value) {
+            if (value === null || value === undefined) return null;
+
+            if (typeof value === "string") {
+                const v = value.trim().toLowerCase();
+                if (v === "" || v === "null" || v === "undefined") {
+                    return null;
+                }
+            }
+
+            return value;
+        }
+
+        function updateVehicleState(vehicle) {
+            const task = getActiveTask(vehicle);
+            const currentTripId = normalizeId(task?.trip_id);
+
+            if (vehicle.id === state.selectedVehicleId && vehicle.lastTripId !== currentTripId) {
+                state.currentTripId = currentTripId;
+                highlightSelectedVehicle();
+            }
+            vehicle.lastTripId = currentTripId;
+
+
+            if (!task) {
+                const simMinutes = state.simTime / 60;
+                vehicle.status = "IDLE";
+                vehicle.speed = 0;
+                vehicle.currentSegmentIndex = null;
+                if (simMinutes < vehicle.tasks[0].start_time && routes[vehicle.tasks[0].trip_id])
+                    vehicle.lastPosition = [routes[vehicle.tasks[0].trip_id].Geometry[0], routes[vehicle.tasks[0].trip_id].Geometry[1]];
+                if (simMinutes > vehicle.tasks[vehicle.tasks.length - 1].end_time && routes[vehicle.tasks[vehicle.tasks.length - 1].trip_id])
+                    vehicle.lastPosition = [routes[vehicle.tasks[vehicle.tasks.length - 1].trip_id].Geometry.at(-2), routes[vehicle.tasks[vehicle.tasks.length - 1].trip_id].Geometry.at(-1)];
+                return vehicle.lastPosition;
+            }
+
+            vehicle.status = task.status;
+            vehicle.speed = task.duration > 0 ? (task.cost_km / task.duration * 60) : 0;
+
+            const elapsed = state.simTime - task.start_time * 60;
+            const totalTaskSeconds = task.duration * 60;
+            const progress = Math.min(1, Math.max(0, elapsed / totalTaskSeconds));
+
+            vehicle.battery = task.start_battery - (task.start_battery - task.end_battery) * progress;
+
+            if (task.trip_id && routes[task.trip_id]) {
+                vehicle.lastPosition = interpolate(routes[task.trip_id], elapsed, vehicle);
+            }
+
+            return vehicle.lastPosition;
+        }
+
+        function updateVehicles() {
+            vehicles.forEach(v => { v.lastPosition = updateVehicleState(v); });
+        }
+
+        function updateTimeSlider() {
+            timeSlider.value = state.simTime;
+            timeDisplay.textContent = formatTime(state.simTime);
+        }
+
+        function updateFull() {
+            updateTimeSlider();
+            updateVehicles();
+            syncGeoJSONAndMap();
+            updateGanttPlayhead();
+            updateVehiclePanel();
+            if (lastMouseEvent) {
+                updateTooltip(lastMouseEvent);
+            }
+        }
+
+        // =======================
+        // 🔟 PANEL / HIGHLIGHT
+        // =======================
+        // activated on click and when selected vehicle is changing routes
+        function highlightSelectedVehicle() {
+
+            if (state.selectedVehicleId == null || state.currentTripId == null) {
+                map.getSource("selected-route").setData(emptyFeatureCollection());
+                //if (state.selectedVehicleId == null) highlightedVehicleMarker.remove();
+                state.currentTripId = null;
+                return;
+            }
+            const route = routes[state.currentTripId];
+            if (!route) return;
+            //const coordinates = route.Geometry.map(coord => [coord[1], coord[0]]);
+
+            const lineCoordinates = [];
+            for (let i = 0; i < route.Geometry.length; i += 2) {
+                lineCoordinates.push([route.Geometry[i + 1], route.Geometry[i]]);
+            }
+            map.getSource("selected-route").setData({
+                type: "FeatureCollection",
+                features: [{ type: "Feature", geometry: { type: "LineString", coordinates: lineCoordinates } }]
+            });
+        }
+
+        function updateVehiclePanel() {
+            const panel = document.getElementById("vehicle-details");
+            if (state.selectedVehicleId == null) {
+                if (state._lastPanelState !== "empty") {
+                    panel.innerHTML = "<p>Select a vehicle to see details</p>";
+                    state._lastPanelState = "empty";
+                }
+                return;
+            }
+
+            const v = vehicles.find(v => v.id === state.selectedVehicleId);
+            let color = "#2ECC71";
+            if ((v.battery / v.maxBattery) < 0.3) color = "#E74C3C";
+            else if ((v.battery / v.maxBattery) < 0.6) color = "#F1C40F";
+
+            const newHTML = `
+                        <p><strong>Vehicle ID:</strong> ${v.id}</p>
+                         ${v.currentTaskIndex != null ? `<p><strong>Task ID:</strong> ${v.currentTaskIndex}</p>` : ""}
+                        <p><strong>Status:</strong> ${v.status}</p>
+                        ${state.currentTripId != null ? `<p><strong>Current Trip:</strong> ${state.currentTripId}</p>` : ""}
+                        ${v.currentSegmentIndex != null ? `<p><strong>Current Segment:</strong> ${v.currentSegmentIndex}</p>` : ""}
+                        <p><strong>Speed:</strong> ${v.speed.toFixed(1)} km/h</p>
+                        <p><strong>Battery:</strong> ${v.battery.toFixed(0)} km</p>
+                        <div class="battery-container">
+                            <div class="battery-fill" style="width:${(v.battery / v.maxBattery) * 100}%;background-color:${color}"></div>
+                        </div>
+                    `;
+
+            if (state._lastPanelState !== newHTML) {
+                panel.innerHTML = newHTML;
+                state._lastPanelState = newHTML;
+            }
+        }
+
+        function zoomToVehicle(vehicleId) {
+
+            const feature = vehiclesGeoJSON.features.find(
+                f => f.properties.id === vehicleId
+            );
+
+            const coordinates = feature.geometry.coordinates;
+
+            state.shouldFollow = false;
+            map.flyTo({
+                center: coordinates,
+                zoom: 12,
+                speed: 1.2,
+                curve: 1.4,
+                essential: true
+            });
+
+            map.once("moveend", () => {
+                state.shouldFollow = true;
+            });
+
+        }
+
+        function pulse(timestamp) {
+            const radius = 4 + Math.sin(timestamp / 500) * 1;
+            map.setPaintProperty('vehicles-layer', 'circle-stroke-width', [
+                //'case',
+                //['==', ['get', 'id'], highlightedId],
+                "case",
+                ["boolean", ["feature-state", "selected"], false],
+                radius,
+                2
+            ]);
+            
+        }
+
+        // =======================
+        // 1️⃣1️⃣ UI CONTROLS
+        // =======================
+        function getSystemScrollbarThickness() {
+            const dummy = document.createElement('div');
+            // Force a scrollbar, but strictly remove all borders and padding
+            dummy.style.cssText = `
+                    width: 50px;
+                    height: 50px;
+                    overflow: scroll;
+                    position: absolute;
+                    top: -9999px;
+                    border: none;
+                    padding: 0;
+                `;
+            document.body.appendChild(dummy);
+
+            // Because there are no borders, offset - client is purely the scrollbar!
+            const thickness = dummy.offsetWidth - dummy.clientWidth;
+
+            document.body.removeChild(dummy);
+            return thickness;
+        }
+
+        function formatTime(seconds) {
+            seconds = Math.floor(seconds);
+            const days = Math.floor(seconds / 86400);
+            const h = Math.floor((seconds % 86400) / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `Day ${days} ${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        }
+
+        document.getElementById("playBtn").onclick = () => state.running = true;
+        document.getElementById("pauseBtn").onclick = () => state.running = false;
+        document.getElementById("speedSelect").onchange = e => state.simSpeed = +e.target.value;
+        timeSlider.oninput = e => {
+            state.simTime = +e.target.value;
+            //state.running = false;
+            updateFull();
+        };
+
+        function emptyFeatureCollection() { return { type: "FeatureCollection", features: [] }; }
+
+        // =======================
+        // 1️⃣2️⃣ GANTT CHART
+        // =======================
+        function getTaskColor(status) {
+            switch (status) {
+                case "TRIP": return "#2ECC71";
+                case "TO_TRIP_START": return "#F1C40F";
+                case "TO_CHARGING_POINT": return "#F39C12";  // amber – energy destination
+                case "TO_DEPOT": return "#E67E22";
+                case "FROM_DEPOT": return "#3498DB";  // keep blue for depot origin
+                case "FROM_CHARGING_POINT": return "#1ABC9C";  // energized departure
+                case "SETUP_CHARGE": return "#48C9B0";  // lighter teal (preparation)
+                case "CHARGE": return "#00B8D4";  // electric cyan (active charging)
+                case "WAIT": return "#BDC3C7";
+                default: return "#E74C3C";
+            }
+        }
+
+        function mapTasksToGantt(vehicle) {
+            return vehicle.tasks.map(task => ({
+                start: task.start_time, end: task.end_time, status: task.status, trip_id: task.trip_id, start_battery: task.start_battery,
+                end_battery: task.end_battery
+            }));
+        }
+
+        function drawBatteryBars() {
+            const desiredWidth = sidebarLeft;
+            const desiredHeight = vehicles.length * rowHeight + paddingTop;
+
+            if (batteryCanvas.width !== desiredWidth) batteryCanvas.width = desiredWidth;
+            if (batteryCanvas.height !== desiredHeight) batteryCanvas.height = desiredHeight;
+
+            ctxBattery.clearRect(0, 0, batteryCanvas.width, batteryCanvas.height);
+            ctxBattery.font = "12px Arial";
+            ctxBattery.textBaseline = "middle";
+
+            vehicles.forEach((v, i) => {
+                const y = i * rowHeight + paddingTop; // Shift down by paddingTop
+
+                ctxBattery.beginPath();
+                ctxBattery.moveTo(0, y);
+                ctxBattery.lineTo(batteryCanvas.width, y);
+                ctxBattery.strokeStyle = "lightgray";
+                ctxBattery.lineWidth = 0.5;
+                ctxBattery.stroke();
+
+                ctxBattery.save();
+                ctxBattery.shadowColor = "black";
+                ctxBattery.shadowBlur = 5;
+                ctxBattery.shadowOffsetX = 5;
+                ctxBattery.shadowOffsetY = 5;
+                ctxBattery.fillStyle = "#EEE";
+                ctxBattery.fillRect(10, y + 5, 100, batteryHeight);
+                ctxBattery.restore();
+
+                let color = "#2ECC71";
+                if ((v.battery / v.maxBattery) < 0.3) color = "#E74C3C";
+                else if ((v.battery / v.maxBattery) < 0.6) color = "#F1C40F";
+
+                const batteryWidth = (v.battery / v.maxBattery) * 100;
+                ctxBattery.fillStyle = color;
+                ctxBattery.fillRect(10, y + 5, batteryWidth, batteryHeight);
+
+                ctxBattery.fillStyle = "#000";
+                ctxBattery.fillText(`V${v.id}`, 12, y + batteryHeight / 2 + 6);
+            });
+        }
+
+        function updateTooltip(e) {
+            const rect = batteryCanvas.getBoundingClientRect();
+            const wrapperRect = ganttWrapper.getBoundingClientRect();
+            const mouseY = e.clientY - rect.top;
+
+            const vehicleIndex = Math.floor((mouseY - paddingTop) / rowHeight);
+
+            if (mouseY >= paddingTop && vehicleIndex >= 0 && vehicleIndex < vehicles.length) {
+                const v = vehicles[vehicleIndex];
+                batteryTooltip.style.display = "block";
+                batteryTooltip.style.left = (e.clientX - wrapperRect.left + 10) + "px";
+                batteryTooltip.style.top = (e.clientY - wrapperRect.top - 10) + "px";
+                batteryTooltip.innerText =
+                    `V${v.id}\n Current Battery: ${v.battery.toFixed(2)} km\n Max Battery: ${v.maxBattery.toFixed(2)} km\n ${(v.battery / v.maxBattery * 100).toFixed(2)} % `;
+            } else {
+                batteryTooltip.style.display = "none";
+            }
+        }
+
+        let lastMouseEvent = null;
+
+        batteryCanvas.onmousemove = e => {
+            lastMouseEvent = e;
+            updateTooltip(e);
+        };
+
+        batteryCanvas.onmouseleave = () => {
+            batteryTooltip.style.display = "none";
+            lastMouseEvent = null;
+        };
+
+        /*
+        function drawGanttTaskz() {
+            const totalMinutes = state.maxSimTime / 60;
+            const desiredWidth = Math.max(ganttContainer.clientWidth, paddingLeft + totalMinutes * timeScale + paddingRight);
+            const desiredHeight = vehicles.length * rowHeight + paddingTop;
+
+            if (ganttCanvas.width !== desiredWidth) {
+                ganttCanvas.width = desiredWidth;
+                ganttScrollArea.style.width = desiredWidth + "px";
+            }
+            if (ganttCanvas.height !== desiredHeight) {
+                ganttCanvas.height = desiredHeight;
+                ganttScrollArea.style.height = (desiredHeight + 20) + "px";
+            }
+
+            ctxGantt.clearRect(0, 0, ganttCanvas.width, ganttCanvas.height);
+            ctxGantt.font = "12px Arial";
+            ctxGantt.textBaseline = "middle";
+
+            vehicles.forEach((vehicle, i) => {
+                const y = i * rowHeight + paddingTop;
+                const isSelected = vehicle.id === state.selectedVehicleId;
+                const taskY = y + 15 + batteryHeight; // Define the base Y for tasks
+
+                // Helper to map battery value to Y-coordinate within the task box
+                const getBatY = (batValue) => taskY + taskHeight - (batValue / vehicle.maxBattery * taskHeight);
+
+                if (isSelected) {
+                    ctxGantt.fillStyle = "rgba(255, 223, 0, 0.2)";
+                    ctxGantt.fillRect(0, y, ganttCanvas.width, rowHeight);
+                }
+
+                ctxGantt.beginPath();
+                ctxGantt.moveTo(0, y);
+                ctxGantt.lineTo(ganttCanvas.width, y);
+                ctxGantt.strokeStyle = "lightgray";
+                ctxGantt.lineWidth = 0.5;
+                ctxGantt.stroke();
+
+                const tasks = mapTasksToGantt(vehicle);
+                tasks.forEach(task => {
+                    const startX = paddingLeft + task.start * timeScale;
+                    const width = Math.max((task.end - task.start) * timeScale, 1);
+
+                    // 1. Draw Task Bar
+                    ctxGantt.fillStyle = getTaskColor(task.status);
+                    if (isSelected) ctxGantt.fillStyle = shadeColor(ctxGantt.fillStyle, 30);
+                    ctxGantt.fillRect(startX, taskY, width, taskHeight);
+
+                    // 2. Draw Battery Trend Line
+                    ctxGantt.beginPath();
+                    ctxGantt.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                    ctxGantt.lineWidth = 2;
+
+                    const sY = getBatY(task.start_battery);
+                    const eY = getBatY(task.end_battery);
+
+                    ctxGantt.moveTo(startX, sY);
+                    ctxGantt.lineTo(startX + width, eY);
+                    ctxGantt.stroke();
+
+                    if (task.trip_id) {
+
+                        switch (task.status) {
+                            case "TRIP":
+                                {
+                                    ctxGantt.save();
+                                    ctxGantt.translate(startX + 2, y + batteryHeight);
+                                    //ctxGantt.rotate(-Math.PI / 4);
+                                    let label = task.trip_id.length > 30 ? task.trip_id.slice(0, 30) + "…" : task.trip_id;
+                                    ctxGantt.fillStyle = "#000";
+                                    ctxGantt.fillText(label, 0, 0);
+                                    ctxGantt.restore();
+                                    break;
+                                }
+                            case "TO_CHARGING_POINT":
+                            case "TO_DEPOT":
+                            case "FROM_DEPOT":
+                            case "FROM_CHARGING_POINT":
+                                ctxGantt.save();
+                                ctxGantt.translate(startX + 2, y + 10 + batteryHeight);
+                                //ctxGantt.rotate(-Math.PI / 4);
+                                let label = task.trip_id.length > 30 ? task.trip_id.slice(0, 30) + "…" : task.trip_id;
+                                ctxGantt.fillStyle = "#000";
+                                ctxGantt.fillText(label, 0, 0);
+                                ctxGantt.restore();
+                        }
+                    }
+
+                });
+            });
+
+            // Draw Red Line
+            const currentMinute = state.simTime / 60;
+            const x = paddingLeft + currentMinute * timeScale;
+            ctxGantt.strokeStyle = "red";
+            ctxGantt.lineWidth = 2;
+            ctxGantt.beginPath();
+            ctxGantt.moveTo(x, 0);
+            ctxGantt.lineTo(x, ganttCanvas.height);
+            ctxGantt.stroke();
+
+            // Auto-scroll respects the checkbox state
+            if (autoScrollBtn.checked) {
+                const scrollLeft = ganttContainer.scrollLeft;
+                const containerWidth = ganttContainer.clientWidth;
+                if (x < scrollLeft + paddingLeft || x > scrollLeft + containerWidth - 50) {
+                    ganttContainer.scrollLeft = Math.max(0, x - containerWidth / 2);
+                }
+            }
+        }*/
+
+        function shadeColor(color, percent) {
+            const f = parseInt(color.slice(1), 16), t = percent < 0 ? 0 : 255, p = Math.abs(percent) / 100, R = f >> 16, G = f >> 8 & 0x00FF, B = f & 0x0000FF;
+            const r = Math.round((t - R) * p) + R, g = Math.round((t - G) * p) + G, b = Math.round((t - B) * p) + B;
+            return `rgb(${r},${g},${b})`;
+        }
+
+        function renderGanttBackground() {
+            const totalMinutes = state.maxSimTime / 60;
+            const desiredWidth = Math.max(ganttContainer.clientWidth, paddingLeft + totalMinutes * timeScale + paddingRight);
+            const desiredHeight = vehicles.length * rowHeight + paddingTop;
+
+            if (ganttCanvas.width !== desiredWidth) {
+                ganttCanvas.width = desiredWidth;
+                //ganttScrollArea.style.width = desiredWidth + "px";
+            }
+            if (ganttCanvas.height !== desiredHeight) {
+                ganttCanvas.height = desiredHeight;
+                // ganttScrollArea.style.height = (desiredHeight + 20) + "px";
+            }
+            //ganttCanvas.style.width = ganttCanvas.width + "px";
+            //ganttCanvas.style.height = ganttCanvas.height + "px";
+
+
+
+            ctxGantt.clearRect(0, 0, ganttCanvas.width, ganttCanvas.height);
+            ctxGantt.font = "12px Arial";
+            ctxGantt.textBaseline = "middle";
+
+            const totalHours = Math.ceil((state.maxSimTime / 60) / 60);
+
+            for (let h = 0; h <= totalHours; h++) {
+                const x = paddingLeft + (h * 60 * timeScale);
+                ctxGantt.beginPath();
+                ctxGantt.moveTo(x, 0);
+                ctxGantt.lineTo(x, ganttCanvas.height);
+                ctxGantt.strokeStyle = "rgba(204, 204, 204, 1)"; // Very faint lines
+                ctxGantt.lineWidth = 1;
+                ctxGantt.stroke();
+            }
+
+            vehicles.forEach((vehicle, i) => {
+                const y = i * rowHeight + paddingTop;
+                const isSelected = vehicle.id === state.selectedVehicleId;
+                const taskY = y + 15 + batteryHeight; // Define the base Y for tasks
+
+                // Helper to map battery value to Y-coordinate within the task box
+                const getBatY = (batValue) => taskY + taskHeight - (batValue / vehicle.maxBattery * taskHeight);
+
+                if (isSelected) {
+                    ctxGantt.fillStyle = "rgba(255, 223, 0, 0.2)";
+                    ctxGantt.fillRect(0, y, ganttCanvas.width, rowHeight);
+                }
+
+                ctxGantt.beginPath();
+                ctxGantt.moveTo(0, y);
+                ctxGantt.lineTo(ganttCanvas.width, y);
+                ctxGantt.strokeStyle = "lightgray";
+                ctxGantt.lineWidth = 0.5;
+                ctxGantt.stroke();
+
+
+                const tasks = mapTasksToGantt(vehicle);
+                tasks.forEach(task => {
+                    const startX = paddingLeft + task.start * timeScale;
+                    const width = Math.max((task.end - task.start) * timeScale, 1);
+
+                    // 1. Draw Task Bar
+                    ctxGantt.fillStyle = getTaskColor(task.status);
+                    if (isSelected) ctxGantt.fillStyle = shadeColor(ctxGantt.fillStyle, 30);
+                    ctxGantt.fillRect(startX, taskY, width, taskHeight);
+
+                    // 2. Draw Battery Trend Line
+                    ctxGantt.beginPath();
+                    ctxGantt.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                    ctxGantt.lineWidth = 2;
+
+                    const sY = getBatY(task.start_battery);
+                    const eY = getBatY(task.end_battery);
+
+                    ctxGantt.moveTo(startX, sY);
+                    ctxGantt.lineTo(startX + width, eY);
+                    ctxGantt.stroke();
+
+                    if (task.trip_id) {
+
+                        switch (task.status) {
+                            case "TRIP":
+                            case "TO_CHARGING_POINT":
+                            case "TO_DEPOT":
+                            case "FROM_DEPOT":
+                            case "FROM_CHARGING_POINT":
+                                drawLabel(ctxGantt, task.trip_id, startX, y + batteryHeight - 8, width);
+                        }
+                    }
+
+                });
+            });
+        }
+
+        function drawLabel(ctx, text, x, y, maxWidth) {
+            if (maxWidth < 10)
+                return;
+
+            ctx.save();
+            ctxGantt.fillStyle = "#000";
+            ctx.textAlign = "center";
+            ctx.font = "10px Arial";
+
+
+            let lines = [];
+            let lineHeight = 14;
+
+            if (ctx.measureText(text).width > maxWidth) {
+                lines = wrapText(ctx, text, maxWidth);
+            }
+            else {
+                lines.push(text);
+            }
+
+            lines.forEach((lineText, i) => {
+                ctx.fillText(lineText.trim(), x + maxWidth / 2, y + i * lineHeight);
+            });
+            ctx.restore();
+        }
+
+        function wrapText(ctx, text, maxWidth) {
+            const lines = [];
+            let line = '';
+
+            for (let word of text.split(' ')) {
+                const test = line ? line + ' ' + word : word;
+
+                if (ctx.measureText(test).width <= maxWidth) {
+                    line = test;
+                } else {
+                    if (line) lines.push(line);
+                    line = '';
+
+                    // Split long words character by character
+                    let part = '';
+                    for (let char of word) {
+                        if (ctx.measureText(part + char).width > maxWidth) {
+                            if (part) lines.push(part);
+                            part = char;
+                        } else {
+                            part += char;
+                        }
+                    }
+                    line = part;
+                }
+            }
+
+            if (line) lines.push(line);
+            return lines;
+        }
+
+
+        //function updateGanttPlayhead() {
+        //    playheadCanvas.width = ganttCanvas.width;
+        //    playheadCanvas.height = ganttCanvas.height;
+
+        //    ctxPlayhead.clearRect(0, 0, playheadCanvas.width, playheadCanvas.height);
+
+        //    const currentMinute = state.simTime / 60;
+        //    const x = paddingLeft + currentMinute * timeScale;
+
+        //    // Draw Red Line
+        //    ctxPlayhead.strokeStyle = "red";
+        //    ctxPlayhead.lineWidth = 2;
+        //    ctxPlayhead.beginPath();
+        //    ctxPlayhead.moveTo(x, 0);
+        //    ctxPlayhead.lineTo(x, playheadCanvas.height);
+        //    ctxPlayhead.stroke();
+
+        //    if (autoScrollBtn.checked) {
+        //        const scrollLeft = ganttContainer.scrollLeft;
+        //        const containerWidth = ganttContainer.clientWidth;
+        //        ganttContainer.scrollLeft = Math.max(0, x - containerWidth / 2);
+
+        //        /*if (x < scrollLeft + paddingLeft || x > scrollLeft + containerWidth - 50) {
+        //            ganttContainer.scrollLeft = Math.max(0, x - containerWidth / 2);
+        //        }*/
+        //    }
+        //}
+
+        let playheadAnimationId;
+        let currentAnimation = null;
+
+        function updateGanttPlayhead(minuteTo, duration = 500) {
+            // 1. No target provided: Redraw at current position
+            if (minuteTo === undefined) {
+                const currentMinute = state.simTime / 60;
+                const x = paddingLeft + currentMinute * timeScale;
+                drawLine(x);
+                return;
+            }
+
+            // 2. FAST PATH FOR DRAGGING: Instant Update
+            if (duration <= 0) {
+                if (currentAnimation) {
+                    cancelAnimationFrame(playheadAnimationId);
+                    state.running = currentAnimation.wasRunning;
+                    currentAnimation = null;
+                }
+
+                state.simTime = minuteTo * 60;
+                const x = paddingLeft + minuteTo * timeScale;
+                drawLine(x);
+                updateFull();
+                return;
+            }
+
+            // 3. NORMAL PATH FOR CLICKING: Animated Update
+            const startMinute = state.simTime / 60;
+            const distanceX = minuteTo - startMinute;
+            const startTime = performance.now();
+
+            if (currentAnimation) {
+                cancelAnimationFrame(playheadAnimationId);
+                state.running = currentAnimation.wasRunning;
+            }
+
+            currentAnimation = { wasRunning: state.running };
+            state.running = false;
+
+            function animate(time) {
+                const elapsed = time - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+                const currentMinute = startMinute + distanceX * eased(progress);
+                const x = paddingLeft + currentMinute * timeScale;
+
+                drawLine(x);
+
+                state.simTime = currentMinute * 60;
+                updateFull();
+
+                if (progress < 1) {
+                    playheadAnimationId = requestAnimationFrame(animate);
+                } else {
+                    state.simTime = minuteTo * 60;
+                    state.running = currentAnimation.wasRunning;
+                    currentAnimation = null;
+                }
+            }
+
+            playheadAnimationId = requestAnimationFrame(animate);
+
+            // --- DRAW LINE HELPER ---
+            function drawLine(x) {
+                if (playheadCanvas.width !== ganttCanvas.width) {
+                    playheadCanvas.width = ganttCanvas.width;
+                }
+                if (playheadCanvas.height !== ganttCanvas.height) {
+                    playheadCanvas.height = ganttCanvas.height;
+                }
+
+                ctxPlayhead.clearRect(0, 0, playheadCanvas.width, playheadCanvas.height);
+
+                ctxPlayhead.strokeStyle = "red";
+                ctxPlayhead.lineWidth = 2;
+                ctxPlayhead.beginPath();
+                ctxPlayhead.moveTo(x, 0);
+                ctxPlayhead.lineTo(x, playheadCanvas.height);
+                ctxPlayhead.stroke();
+
+                if (autoScrollBtn.checked) {
+                    const containerWidth = ganttContainer.clientWidth;
+                    ganttContainer.scrollLeft = Math.max(0, x - containerWidth / 2);
+                }
+            }
+        }
+
+
+
+
+
+
+        /*
+        function updateGanttPlayheadSmooth(minuteTo, duration = 500) {
+
+
+            return new Promise(resolve => {
+                const startMinute = state.simTime / 60;
+                const distanceX = minuteTo - startMinute;
+
+                const startTime = performance.now();
+
+                function animate(time) {
+                    const elapsed = time - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = ease(progress);
+
+                    if (distanceX !== 0) {
+
+                        const currentMinute = startMinute + distanceX * eased;
+                        ctxPlayhead.clearRect(0, 0, playheadCanvas.width, playheadCanvas.height);
+
+                        const x = paddingLeft + currentMinute * timeScale;
+
+                        // Draw Red Line
+                        ctxPlayhead.strokeStyle = "red";
+                        ctxPlayhead.lineWidth = 2;
+                        ctxPlayhead.beginPath();
+                        ctxPlayhead.moveTo(x, 0);
+                        ctxPlayhead.lineTo(x, playheadCanvas.height);
+                        ctxPlayhead.stroke();
+
+                        state.simTime = currentMinute * 60;
+                        if (autoScrollBtn.checked) {
+                            const scrollLeft = ganttContainer.scrollLeft;
+                            const containerWidth = ganttContainer.clientWidth;
+                            ganttContainer.scrollLeft = Math.max(0, x - containerWidth / 2);
+                        }
+                        updateFull();
+                    }
+
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+
+                        resolve();
+                    }
+                }
+
+                function ease(t) {
+                    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // easeInOut
+                }
+
+                requestAnimationFrame(animate);
+            });
+        }*/
+
+
+
+        function drawTimeline() {
+            const totalMinutes = state.maxSimTime / 60;
+            const desiredWidth = Math.max(ganttContainer.clientWidth, paddingLeft + totalMinutes * timeScale + paddingRight);
+
+            // Set height to match your paddingTop
+            timelineCanvas.height = timelineHeight;
+            timelineCanvas.width = desiredWidth;
+
+            ctxTimeline.clearRect(0, 0, timelineCanvas.width, timelineCanvas.height);
+            ctxTimeline.font = "bold 12px Arial";
+            ctxTimeline.fillStyle = "#333";
+            ctxTimeline.textAlign = "center";
+
+            // Draw hourly markers
+            const totalHours = Math.ceil(totalMinutes / 60);
+            for (let h = 0; h <= totalHours; h++) {
+                const x = paddingLeft + (h * 60 * timeScale);
+
+                // Draw vertical tick on the header
+                ctxTimeline.beginPath();
+                ctxTimeline.moveTo(x, timelineHeight - 10);
+                ctxTimeline.lineTo(x, timelineHeight);
+                ctxTimeline.strokeStyle = "rgba(204, 204, 204, 1)"; // Very faint lines
+                ctxTimeline.lineWidth = 1;
+                ctxTimeline.stroke();
+
+                // Draw Label (e.g., "14:00")
+                const label = `${String(h % 24).padStart(2, '0')}:00`;
+                ctxTimeline.fillText(label, x, timelineHeight - 15);
+
+                for (let i = 1; i < 4; i++) {
+                    const x = paddingLeft + ((h * 60 + i * 15) * timeScale);
+                    ctxTimeline.beginPath();
+                    ctxTimeline.moveTo(x, timelineHeight - 10);
+                    ctxTimeline.lineTo(x, timelineHeight);
+                    ctxTimeline.strokeStyle = "rgba(204, 204, 204, 1)"; // Very faint lines
+                    ctxTimeline.lineWidth = 1;
+                    ctxTimeline.stroke();
+                    const label = `${String(h % 24).padStart(2, '0')}:${i * 15}`;
+                    ctxTimeline.fillText(label, x, timelineHeight - 15);
+                }
+
+                // Optional: Draw Day marker if it's midnight
+                if (h % 24 === 0) {
+                    ctxTimeline.fillText(`Day ${Math.floor(h / 24)}`, x, timelineHeight - 35);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

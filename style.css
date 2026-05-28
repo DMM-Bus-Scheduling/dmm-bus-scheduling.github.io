@@ -1,0 +1,313 @@
+﻿:root {
+    /* Pico v2 Overrides */
+    --pico-form-element-spacing-vertical: 0.5rem;
+    --pico-form-element-spacing-horizontal: 0.75rem;
+    --pico-font-family-sans-serif: 'Plus Jakarta Sans', system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, Helvetica, Arial, "Helvetica Neue", sans-serif, var(--pico-font-family-emoji);
+    /* --- LAYOUT UTILITIES --- */
+}
+
+.container {
+    padding-top: 2rem;
+    /* Removed max-width to let Pico handle responsiveness naturally */
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mb-1 {
+    margin-bottom: 1rem;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mono-font {
+    font-family: var(--pico-font-family-monospace);
+}
+/* Helper for hiding elements (used by JS) */
+.hidden {
+    display: none !important;
+}
+/* --- SECTION STYLING (Making Part 1 & 2 look same) --- */
+/* This makes the <summary> look exactly like the <header> */
+.section-header {
+    background-color: var(--pico-card-sectioning-background-color);
+    padding: var(--pico-block-spacing-vertical) var(--pico-block-spacing-horizontal);
+    margin: 0 calc(var(--pico-block-spacing-horizontal) * -1); /* Full width bleed */
+    border-top: 1px solid var(--pico-muted-border-color);
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    font-weight: bold;
+    color: var(--pico-h1-color);
+    cursor: pointer;
+    list-style: none; /* Hide default details arrow if desired, or keep it */
+}
+/* Remove border from the first header so it blends if needed, 
+   or keep distinct. Here we ensure the top header matches the divider style. */
+article > header {
+    background-color: var(--pico-card-sectioning-background-color);
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    font-weight: bold;
+}
+/* --- COMPONENTS --- */
+/* Tab System */
+.tab-content {
+    display: none; /* Hidden by default */
+    padding: 1rem 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+    .tab-content.active {
+        display: block; /* Shown when active */
+    }
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Pipeline Checkbox Grid (Custom Boxed Look) */
+/* Add class="boxed-grid" to your checkbox container in HTML if you want this border */
+.boxed-grid {
+    background: var(--pico-card-sectioning-background-color);
+    padding: 1rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    margin-bottom: 1rem;
+}
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.1rem 0.1rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.5rem;
+    font-weight: bold;
+}
+/* Custom Status Colors */
+.badge-check {
+    background-color: var(--pico-primary-background);
+    color: var(--pico-primary-inverse);
+}
+
+.badge-ok {
+    background-color: var(--pico-ins-color);
+    color: white;
+}
+
+.badge-no {
+    background-color: var(--pico-del-color);
+    color: white;
+}
+
+.pulse {
+    animation: pulse-animation 1s infinite;
+}
+
+@keyframes pulse-animation {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+/* --- JOB MONITORING VISUALS --- */
+
+progress {
+    height: 1rem;
+    margin-bottom: 1rem;
+}
+
+    progress.phase-bar-fill {
+        height: 0.2rem;
+        margin-bottom: 0;
+    }
+
+#phaseDetails {
+    margin-top: 1rem;
+}
+
+.phase-card {
+    background: var(--pico-card-background-color);
+    padding: 0.75rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    margin-bottom: 0.5rem;
+}
+/* 
+   IMPORTANT: If using the <progress> tag in HTML, 
+   Pico handles the styling automatically. 
+   
+   If you want the Custom Animated Div bars defined below, 
+   change the <progress> tag in your HTML template to:
+   <div class="phase-bar-bg"><div class="phase-bar-fill"></div></div> 
+*/
+/*
+.phase-bar-bg {
+    background: var(--pico-secondary-background);
+    height: 8px;
+    width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.phase-bar-fill {
+    height: 100%;
+    background-color: var(--pico-primary-background);
+    border-radius: 4px;
+    transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+}
+ */
+/* Disabled State for Setup Panel */
+.setup-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(90%);
+    transition: opacity 0.3s ease;
+}
+/* Debug Log Area */
+#debugLog {
+    /* Pico v2 variables */
+    background: var( --pico-code-background-color);
+    color: var(--pico-code-color);
+    padding: 1rem;
+    font-family: var(--pico-font-family-monospace);
+    font-size: 0.8rem;
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: var(--pico-border-radius);
+    border: 1px solid var(--pico-muted-border-color);
+}
+/* --- FLOATING THEME TOGGLE --- */
+
+#theme-toggle-float {
+    color: var(--pico-background-color);
+    background: var(--pico-background);
+    border: 0px solid var(--pico-muted-border-color);
+    box-shadow: 0 0px 0px rgba(0,0,0,0.1);
+    /* Positioning */
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 999;
+    /* Shape */
+    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    /* Layout */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    touch-action: manipulation;
+}
+/*
+    #theme-toggle-float:hover {
+        transform: scale(1.1);
+    }*/
+/* --- MORPH ANIMATION CORE --- */
+
+.sun-and-moon > :is(.moon, .sun, .sun-beams) {
+    transform-origin: center center;
+}
+
+.sun-and-moon > :is(.moon, .sun) {
+    fill: currentColor;
+}
+
+.sun-and-moon > .sun-beams {
+    stroke: currentColor;
+    stroke-width: 2px;
+}
+/* --- BASE STATE: LIGHT MODE (Shows MOON Icon) --- */
+/* 1. The Sun Body (Becomes Moon Body) */
+.sun-and-moon > .sun {
+    transform: scale(1.75);
+    transition: transform 0.4s cubic-bezier(0.25, 0, 0.3, 1);
+}
+/* 2. The Rays (Hidden) */
+.sun-and-moon > .sun-beams {
+    opacity: 0;
+    transform: rotate(-25deg);
+    transition: transform 0.15s, opacity 0.15s;
+}
+/* 3. The Mask (Visible, biting the sun) */
+.sun-and-moon .moon circle {
+    /* Center position to create crescent */
+    transform: translate(5px, -5px);
+    /* When entering Light Mode (Moon): Slide in last */
+    transition: transform 0.4s cubic-bezier(0.5, 1.25, 0.75, 1.25);
+    transition-delay: 0.0s;
+    will-change: transform;
+}
+/* --- OVERRIDE: DARK MODE (Shows SUN Icon) --- */
+/* 1. Sun Body (Shrinks back to normal) */
+[data-theme="dark"] .sun-and-moon > .sun {
+    transform: scale(1);
+    /* When going to Sun: Wait for mask to leave (0.1s) then shrink */
+    transition-delay: 0.1s;
+    transition-timing-function: cubic-bezier(0.5, 1.5, 0.75, 1.25);
+}
+/* 2. Rays (Pop out) */
+[data-theme="dark"] .sun-and-moon > .sun-beams {
+    opacity: 1;
+    transform: rotate(0deg);
+    /* When going to Sun: Wait for shrink, then pop */
+    transition-delay: 0.15s;
+    transition-duration: 0.5s;
+    transition-timing-function: cubic-bezier(0.5, 1.5, 0.75, 1.25);
+}
+/* 3. Mask (Slides away) */
+[data-theme="dark"] .sun-and-moon .moon circle {
+    /* Move to Top-Right (Hidden) */
+    transform: translate(14px, -14px);
+    /* When going to Sun: Leave immediately! */
+    transition-delay: 0s;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}
+/* Custom Info Box Style */
+.notice-info {
+    background-color: var(--pico-mark-background-color); /* Uses Pico's theme blue */
+    color: var(--pico-mark-color); /* White text */
+    border: none;
+}
+    /* Fix links/text inside to be readable against blue */
+    .notice-info strong, .notice-info p {
+        color: inherit;
+    }
+
+.monoton-regular {
+    font-family: "Monoton", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: clamp(2rem, 6vw, 6rem);
+    font-kerning: none;
+}
+
+#mermaid-container {
+    display: flex;
+    justify-content: center;
+}
+
+    #mermaid-container svg {
+        max-width: 900px;
+    }
