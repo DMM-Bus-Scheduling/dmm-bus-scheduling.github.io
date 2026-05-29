@@ -110,7 +110,7 @@
         <section style="margin-top: 2rem;">
             <h2 class="text-center">Why Fleet Operators Should Choose EVOROUTE</h2>
 
-            <div class="grid">
+            <div class="grid" style="margin-top: 2rem;">
                 <article>
                     <header><strong>Minimal Fleet Size</strong></header>
                     <p>Reduces the number of EVs needed to meet demand with optimal vehicle allocation, scheduling, and route switching.</p>
@@ -259,7 +259,7 @@
         </section>
 
         <!-- INTERACTIVE CALCULATOR SECTION -->
-        <section id="calculator" style="margin-top: 3rem;">
+        <section id="calculator" style="margin-top: 4rem;">
             <div class="text-center">
                 <h2>Estimate Your Fleet's Optimization Potential</h2>
                 <p>Input your basic fleet metrics to see how much EVOROUTE could reduce your vehicle requirements and operating costs.</p>
@@ -394,8 +394,11 @@
                             Don’t fill this out if you’re human: <input name="bot-field" type="text" />
                         </label>
                     </div>
+                    <!-- Feedback Message Container -->
+                    <div id="form-status-message" class="hidden" style="margin-bottom: 1rem; font-size: 0.9rem;"></div>
+
                     <button type="submit" class="contrast" style="width: 100%;">Submit Demo Request</button>
-                    <div data-netlify-recaptcha="true"></div>
+                    <div data-netlify-recaptcha="true" style="display: inline-block;"></div>
                 </form>
 
                 <footer class="text-center">
@@ -562,22 +565,70 @@
     </script>
 
     <script>
-            const handleSubmit = event => {
-            event.preventDefault();
+    const handleSubmit = event => {
+        event.preventDefault();
 
-            const myForm = event.target;
-            const formData = new FormData(myForm);
+        const myForm = event.target;
+        const submitButton = myForm.querySelector('button[type="submit"]');
+        const statusMessage = document.getElementById('form-status-message');
 
-            fetch("/", {
+        // Prevent double submissions and indicate progress
+        const originalButtonText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = "Submitting...";
+
+        const formData = new FormData(myForm);
+
+        fetch("/", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams(formData).toString()
-            })
-            .then(() => console.log("Form successfully submitted"))
-            .catch(error => alert(error));
-            };
+        })
+        .then(response => {
+            if (response.ok) {
+                // Clear the input fields
+                myForm.reset();
 
-        document.querySelector("form").addEventListener("submit", handleSubmit);
+                // Display success confirmation message
+                statusMessage.textContent = "Thank you! Your demo request has been successfully submitted. We will contact you shortly.";
+                statusMessage.style.backgroundColor = "rgba(16, 185, 129, 0.15)"; // Soft green
+                statusMessage.style.color = "var(--pico-ins-color)";
+                statusMessage.style.border = "1px solid var(--pico-ins-color)";
+                statusMessage.style.padding = "0.75rem 1rem";
+                statusMessage.style.borderRadius = "var(--pico-border-radius)";
+                statusMessage.classList.remove('hidden');
+
+                // Restore submit button state
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+
+                // Hide the success message automatically after 8 seconds
+                setTimeout(() => {
+                    statusMessage.classList.add('hidden');
+                }, 8000);
+            } else {
+                throw new Error("Form submission returned non-OK status");
+            }
+        })
+        .catch(error => {
+            console.error("Submission error:", error);
+
+            // Display error fallback message
+            statusMessage.textContent = "There was an error sending your request. Please try again or email us directly at contact@minalgoritmika.eu.";
+            statusMessage.style.backgroundColor = "rgba(220, 38, 38, 0.15)"; // Soft red
+            statusMessage.style.color = "var(--pico-del-color)";
+            statusMessage.style.border = "1px solid var(--pico-del-color)";
+            statusMessage.style.padding = "0.75rem 1rem";
+            statusMessage.style.borderRadius = "var(--pico-border-radius)";
+            statusMessage.classList.remove('hidden');
+
+            // Restore submit button state
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
+        });
+    };
+
+    document.querySelector("form").addEventListener("submit", handleSubmit);
     </script>
 </body>
 </html>
