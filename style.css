@@ -318,3 +318,7 @@ progress {
     gap: 16px;
     flex-wrap: wrap;
 }
+    
+    .submit-row > button {
+        flex: 1 1 0;
+    }
