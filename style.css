@@ -321,4 +321,5 @@ progress {
     .submit-row > button {
         flex: 1 1 0;
         height: 78px;
+        padding: 10px 0 10px 0;
     }
