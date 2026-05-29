@@ -204,14 +204,15 @@ progress {
     box-shadow: 0 0px 0px rgba(0,0,0,0.1);
     /* Positioning */
     position: fixed;
-    top: 1rem;
-    right: 1rem;
+    top: 0rem;
+    right: 0rem;
     z-index: 999;
     /* Shape */
     border-radius: 50%;
     width: 3rem;
     height: 3rem;
-    padding: 0;
+    padding: 0px;
+    margin: 0;
     /* Layout */
     display: flex;
     align-items: center;
@@ -309,8 +310,10 @@ progress {
 }
 
     #mermaid-container svg {
-        max-width: 900px;
+        width: 100%;
     }
+
+
 
 .submit-row {
     display: flex;
@@ -318,8 +321,149 @@ progress {
     gap: 1rem;
     flex-wrap: wrap;
 }
+
     .submit-row > button {
         flex: 1 1 0;
         height: 74px;
         margin: 0;
     }
+
+    .submit-row > div {
+        flex: 0 1 auto;
+        height: 78px;
+        width: 304px;
+        background-color: lightgray;
+        margin: 0;
+    }
+
+/* Responsive adjustments for Navigation */
+@media (max-width: 768px) {
+    /* Stack the logo block on top of the links */
+    nav.site-navbar {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding-top: 1rem;
+    }
+
+        /* Wrap links neatly in a centered row */
+        nav.site-navbar ul {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.25rem 0.5rem; /* Small gaps between wrapped items */
+            padding: 1rem 0;
+        }
+
+            nav.site-navbar ul:first-child {
+                margin-bottom: 0;
+            }
+
+            /* Reduce default padding for tighter mobile layout */
+            nav.site-navbar ul li {
+                padding: 0.25rem 0.5rem;
+            }
+
+        /* Make the CTA button slightly more compact on mobile */
+        nav.site-navbar a[role="button"] {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+        }
+
+    #navbar-logo {
+        display: none;
+    }
+
+    #theme-toggle-float {
+        /* Change from fixed to absolute so it scrolls away with the header */
+        position: absolute;
+        /* Since it rests statically on the background, we can soften or remove the shadow */
+        box-shadow: none;
+    }
+}
+
+/* --- CALCULATOR REFACTORING --- */
+
+/* Uniform Top Margin for Headings to align them perfectly */
+.calculator-header {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+/* Results Column Styling */
+.calculator-results {
+    padding-left: 2rem;
+    border-left: 1px solid var(--pico-muted-border-color);
+}
+
+.savings-highlight {
+    margin-bottom: 1.5rem;
+}
+
+    .savings-highlight h2 {
+        margin: 0.25rem 0 0 0;
+        color: var(--pico-ins-color);
+    }
+
+/* Metric Display Classes */
+.metric-label {
+    display: block;
+    font-weight: bold;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--pico-primary);
+    display: block;
+    line-height: 1.2;
+    margin: 0.25rem 0;
+}
+
+.metric-subtext {
+    display: block;
+    font-size: 0.8rem;
+}
+
+/* Responsive Rules for Mobile Stacked Grid */
+@media (max-width: 768px) {
+    .calculator-results {
+        padding-left: 0;
+        border-left: none;
+        /* Replaces the left border with a clean top divider when columns stack */
+        border-top: 1px solid var(--pico-muted-border-color);
+        padding-top: 2rem;
+        margin-top: 1rem;
+    }
+}
+
+/* --- EQUAL HEIGHT DEMO CARDS --- */
+
+/* Force the outer grid columns to stretch to the tallest column */
+.demo-grid {
+    align-items: stretch;
+}
+
+.demo-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Vertical distribution */
+    height: 100%;
+    margin: 0; /* Reset browser default figure margins */
+}
+
+/* Ensure different text lengths don't misalign the elements below them */
+.demo-caption {
+    margin-bottom: 1rem !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.demo-video {
+    width: 100%;
+    aspect-ratio: 16 / 9; /* Enforces identical heights and dimensions */
+    object-fit: cover; /* Prevents video distortion or black bars */
+    border-radius: var(--pico-border-radius);
+    border: 1px solid var(--pico-muted-border-color);
+    margin-top: auto; /* Pushes player perfectly to the bottom of the card */
+}
