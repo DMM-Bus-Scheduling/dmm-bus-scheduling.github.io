@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Electric Vehicle Optimization Routing Engine | EVOROUTE</title>
+    <title>EVOROUTE | Electric Vehicle Optimization Routing Engine </title>
 
     <script>
         const storedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -22,8 +22,8 @@
 <body>
 
     <!-- BRAND NAVIGATION BAR -->
-    <nav class="container" style="border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 1rem;">
-        <ul>
+    <nav class="container site-navbar" style="border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 1rem;">
+        <ul id="navbar-logo">
             <li>
                 <strong class="monoton-regular" style=" font-size: 1.2rem;">
                     EVOROUTE
@@ -39,7 +39,7 @@
     </nav>
 
     <!-- FLOATING THEME TOGGLE -->
-    <button id="theme-toggle-float" class="contrast" aria-label="Toggle dark mode">
+    <button  class="contrast" id="theme-toggle-float" naria-label="Toggle dark mode">
         <svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
             <mask class="moon" id="moon-mask">
                 <rect x="0" y="0" width="100%" height="100%" fill="white" />
@@ -60,9 +60,8 @@
     </button>
 
     <main class="container">
-
         <!-- HERO SECTION -->
-        <header class="text-center" style="padding: 2rem 0 3rem 0;">
+        <header class="text-center" style="padding: 2rem 0;">
             <hgroup>
                 <h1 class="monoton-regular">
                     EVOROUTE
@@ -71,30 +70,30 @@
             </hgroup>
             <hgroup style="margin-top: 4rem;">
                 <h2>Optimize Your Electric Fleet with Fewer Vehicles</h2>
-                <p style="max-width: 800px; margin: 1rem auto 2rem auto;">
+                <p style="max-width: 800px; margin: 1rem auto 1rem auto;">
                     EVOROUTE analyzes trip schedules, depot and charging point locations, and vehicle specifications to generate efficient routes and schedules for each vehicle—reducing the required fleet size while maintaining your original service levels.
                 </p>
             </hgroup>
 
             <!-- Video Demos arranged in a responsive grid instead of inline blocks -->
-            <div class="grid" style="margin-top: 2rem; gap: 2rem;">
-                <figure>
-                    <figcaption style="margin-bottom: 0.5rem;">
+            <div class="grid demo-grid" style="margin-top: 2rem; gap: 2rem;">
+                <figure class="demo-card">
+                    <figcaption class="demo-caption">
                         <strong>Dashboard Demo</strong><br />
                         <small>Vilnius GTFS transit data is used as the input source.</small>
                     </figcaption>
-                    <video controls muted style="border-radius: var(--pico-border-radius); border: 1px solid var(--pico-muted-border-color); width: 100%;">
+                    <video controls muted class="demo-video">
                         <source src="dashboard.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
                 </figure>
 
-                <figure>
-                    <figcaption style="margin-bottom: 0.5rem;">
+                <figure class="demo-card">
+                    <figcaption class="demo-caption">
                         <strong>Visualizer Demo</strong><br />
                         <small>An example of an optimized route with route switching disabled.</small>
                     </figcaption>
-                    <video controls muted style="border-radius: var(--pico-border-radius); border: 1px solid var(--pico-muted-border-color); width: 100%;">
+                    <video controls muted class="demo-video">
                         <source src="visualizer.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -203,7 +202,7 @@
             </article>
 
             <!-- Flowchart visualization (Mermaid) -->
-            <article>
+            <article class="overflow-auto">
                 <header class="text-center">
                     <strong>System Flow</strong>
                 </header>
@@ -259,7 +258,7 @@
         </section>
 
         <!-- INTERACTIVE CALCULATOR SECTION -->
-        <section id="calculator" style="margin-top: 4rem;">
+        <section class="boxed-grid" id="calculator" style="margin-top: 4rem;">
             <div class="text-center">
                 <h2>Estimate Your Fleet's Optimization Potential</h2>
                 <p>Input your basic fleet metrics to see how much EVOROUTE could reduce your vehicle requirements and operating costs.</p>
@@ -269,7 +268,7 @@
                 <div class="grid">
                     <!-- Calculator Inputs -->
                     <div>
-                        <h5 style="margin-bottom: 1.5rem;">Your Metrics</h5>
+                        <h5 class="calculator-header">Your Metrics</h5>
                         <label for="input-fleet">
                             Current Active Fleet Size
                             <input type="number" id="input-fleet" value="30" min="5" max="500" oninput="calculateSavings()">
@@ -283,25 +282,25 @@
                     </div>
 
                     <!-- Calculator Results -->
-                    <div style="display: flex; flex-direction: column; justify-content: center; padding-left: 1rem; border-left: 1px solid var(--pico-muted-border-color);">
-                        <h5 style="margin-bottom: 1rem;">Estimated Output</h5>
+                    <div class="calculator-results">
+                        <h5 class="calculator-header">Estimated Output</h5>
 
-                        <div style="margin-bottom: 1rem;">
+                        <div class="savings-highlight">
                             <span class="badge badge-ok">Estimated Savings</span>
-                            <h2 style="margin: 0; color: var(--pico-ins-color);" id="output-savings">€225,000</h2>
+                            <h2 id="output-savings">€225,000</h2>
                             <small>Approximate annual operational cost reduction.</small>
                         </div>
 
-                        <div class="grid" style="margin-top: 0.5rem;">
+                        <div class="grid">
                             <div>
-                                <small style="display: block; font-weight: bold;">Optimized Fleet Size</small>
-                                <span style="font-size: 1.5rem; font-weight: bold; color: var(--pico-primary);" id="output-new-fleet">25</span>
-                                <small style="display: block; font-size: 0.8rem;" id="output-vehicles-saved">(5 vehicles saved)</small>
+                                <small class="metric-label">Optimized Fleet Size</small>
+                                <span class="metric-value" id="output-new-fleet">25</span>
+                                <small class="metric-subtext" id="output-vehicles-saved">(5 vehicles saved)</small>
                             </div>
                             <div>
-                                <small style="display: block; font-weight: bold;">Utilization Efficiency</small>
-                                <span style="font-size: 1.5rem; font-weight: bold; color: var(--pico-primary);" id="path-coverage">+16.7%</span>
-                                <small style="display: block; font-size: 0.8rem;">Higher path coverage per asset</small>
+                                <small class="metric-label">Utilization Efficiency</small>
+                                <span class="metric-value" id="path-coverage">+16.7%</span>
+                                <small class="metric-subtext">Higher path coverage per asset</small>
                             </div>
                         </div>
                     </div>
@@ -349,19 +348,19 @@
                 <article class="text-center">
                     <img class="is-rounded" src="https://media.licdn.com/dms/image/v2/C5603AQEwK29UnVK2Xw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1517356722253?e=2147483647&v=beta&t=KB2MJOATLhjlhifBFMhESOXJvMCGOxPsm5g5ln1FBEY" alt="Daumilas Ardickas" style="border-radius: 50%; width: 96px; height: 96px; margin-bottom: 1rem;">
                     <h6>Daumilas Ardickas</h6>
-                    <p><small>Mathematician <br />daumilas@minalgoritmika.eu</small></p>
+                    <p><small>Mathematician <br />daumilas@evoroute.eu</small></p>
                 </article>
 
                 <article class="text-center">
                     <img class="is-rounded" src="https://media.licdn.com/dms/image/v2/D4D03AQEgledRpidz4A/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1713167642165?e=2147483647&v=beta&t=ZSaOP1tgRAkkLPlKk9dsr1q4meOzQ58irOoRpBD54HE" alt="Mindaugas Kepalas" style="border-radius: 50%; width: 96px; height: 96px; margin-bottom: 1rem;">
                     <h6>Mindaugas Kepalas, PhD</h6>
-                    <p><small>Mathematician <br />mindaugas.kepalas@minalgoritmika.eu</small></p>
+                    <p><small>Mathematician <br />mindaugas.kepalas@evoroute.eu</small></p>
                 </article>
 
                 <article class="text-center">
                     <img class="is-rounded" src="https://media.licdn.com/dms/image/v2/C5103AQGjwXob-1nJeA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1517228214793?e=2147483647&v=beta&t=ttxpCdrysyNthh1JOzTcljRIwgkcO0q0dgCNjcXSPvs" alt="Mindaugas Šukys" style="border-radius: 50%; width: 96px; height: 96px; margin-bottom: 1rem;">
                     <h6>Mindaugas Šukys</h6>
-                    <p><small>Software Engineer <br />mindaugas.sukys@minalgoritmika.eu</small></p>
+                    <p><small>Software Engineer <br />mindaugas.sukys@evoroute.eu</small></p>
                 </article>
             </div>
         </section>
