@@ -397,13 +397,15 @@
                     <!-- Feedback Message Container -->
                     <div id="form-status-message" class="hidden" style="margin-bottom: 1rem; font-size: 0.9rem;"></div>
 
-                    <div data-netlify-recaptcha="true" style="display: inline-block;"></div>
-                    <button type="submit" class="contrast">Submit Demo Request</button>
+                    <div class="submit-row">
+                        <div data-netlify-recaptcha="true"></div>
+                        <button type="submit" class="contrast">Submit Demo Request</button>
+                    </div>
 
                 </form>
 
                 <footer class="text-center">
-                    <p><small>Email: contact@minalgoritmika.eu | Phone: +370 654 06897 </small></p>
+                    <p><small>Email: contact@evoroute.eu | Phone: +370 654 06897, +370 652 53872 </small></p>
                 </footer>
             </article>
         </section>
@@ -634,7 +636,7 @@
             console.error("Submission error:", error);
 
             // Display error fallback message
-            statusMessage.textContent = "There was an error sending your request. Please try again or email us directly at contact@minalgoritmika.eu.";
+            statusMessage.textContent = "There was an error sending your request. Please try again or email us directly at contact@evoroute.eu.";
             statusMessage.style.backgroundColor = "rgba(220, 38, 38, 0.15)"; // Soft red
             statusMessage.style.color = "var(--pico-del-color)";
             statusMessage.style.border = "1px solid var(--pico-del-color)";

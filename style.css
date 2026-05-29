@@ -311,3 +311,10 @@ progress {
     #mermaid-container svg {
         max-width: 900px;
     }
+
+.submit-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
