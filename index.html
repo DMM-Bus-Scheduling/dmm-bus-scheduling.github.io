@@ -397,8 +397,9 @@
                     <!-- Feedback Message Container -->
                     <div id="form-status-message" class="hidden" style="margin-bottom: 1rem; font-size: 0.9rem;"></div>
 
-                    <button type="submit" class="contrast" style="width: 100%;">Submit Demo Request</button>
                     <div data-netlify-recaptcha="true" style="display: inline-block;"></div>
+                    <button type="submit" class="contrast">Submit Demo Request</button>
+
                 </form>
 
                 <footer class="text-center">
@@ -572,12 +573,26 @@
         const submitButton = myForm.querySelector('button[type="submit"]');
         const statusMessage = document.getElementById('form-status-message');
 
+        // Capture all form data, including the reCAPTCHA token if completed
+        const formData = new FormData(myForm);
+        const recaptchaResponse = formData.get('g-recaptcha-response');
+
+        // Check if reCAPTCHA has been completed
+        if (!recaptchaResponse) {
+            statusMessage.textContent = "Please complete the reCAPTCHA verification before submitting.";
+            statusMessage.style.backgroundColor = "rgba(220, 38, 38, 0.15)"; // Soft red
+            statusMessage.style.color = "var(--pico-del-color)";
+            statusMessage.style.border = "1px solid var(--pico-del-color)";
+            statusMessage.style.padding = "0.75rem 1rem";
+            statusMessage.style.borderRadius = "var(--pico-border-radius)";
+            statusMessage.classList.remove('hidden');
+            return;
+        }
+
         // Prevent double submissions and indicate progress
         const originalButtonText = submitButton.textContent;
         submitButton.disabled = true;
         submitButton.textContent = "Submitting...";
-
-        const formData = new FormData(myForm);
 
         fetch("/", {
             method: "POST",
@@ -588,6 +603,11 @@
             if (response.ok) {
                 // Clear the input fields
                 myForm.reset();
+
+                // Reset the reCAPTCHA widget visually so it can be used again
+                if (window.grecaptcha) {
+                    grecaptcha.reset();
+                }
 
                 // Display success confirmation message
                 statusMessage.textContent = "Thank you! Your demo request has been successfully submitted. We will contact you shortly.";
