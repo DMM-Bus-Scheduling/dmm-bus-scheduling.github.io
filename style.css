@@ -1,9 +1,20 @@
-﻿:root {
+﻿/* --- LAYOUT UTILITIES --- */
+
+:root {
     /* Pico v2 Overrides */
     --pico-form-element-spacing-vertical: 0.5rem;
     --pico-form-element-spacing-horizontal: 0.75rem;
-    --pico-font-family-sans-serif: 'Plus Jakarta Sans', system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, Helvetica, Arial, "Helvetica Neue", sans-serif, var(--pico-font-family-emoji);
-    /* --- LAYOUT UTILITIES --- */
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        scroll-behavior: auto;
+    }
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', var(--pico-font-family-sans-serif);
 }
 
 .container {
@@ -199,34 +210,37 @@ progress {
 
 #theme-toggle-float {
     color: var(--pico-background-color);
-    background: var(--pico-background);
+    background: var(--pico-primary-color);
     border: 0px solid var(--pico-muted-border-color);
     box-shadow: 0 0px 0px rgba(0,0,0,0.1);
     /* Positioning */
     position: fixed;
     top: 0rem;
     right: 0rem;
+    width: 3rem;
+    height: 3rem;
     z-index: 999;
     /* Shape */
     border-radius: 50%;
-    width: 3rem;
-    height: 3rem;
     padding: 0px;
     margin: 0;
     /* Layout */
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
     touch-action: manipulation;
 }
 /*
     #theme-toggle-float:hover {
         transform: scale(1.1);
     }*/
+
+
 /* --- MORPH ANIMATION CORE --- */
 
 .sun-and-moon > :is(.moon, .sun, .sun-beams) {
+    transform-box: fill-box;
     transform-origin: center center;
 }
 
@@ -238,44 +252,54 @@ progress {
     stroke: currentColor;
     stroke-width: 2px;
 }
+
 /* --- BASE STATE: LIGHT MODE (Shows MOON Icon) --- */
+
 /* 1. The Sun Body (Becomes Moon Body) */
 .sun-and-moon > .sun {
+    will-change: transform; /* Declared once here */
     transform: scale(1.75);
-    transition: transform 0.4s cubic-bezier(0.25, 0, 0.3, 1);
+    transition: transform 0.4s cubic-bezier(0, 0, 0.5, 1);
 }
+
 /* 2. The Rays (Hidden) */
 .sun-and-moon > .sun-beams {
+    will-change: transform, opacity; /* Declared once here */
     opacity: 0;
     transform: rotate(-25deg);
     transition: transform 0.15s, opacity 0.15s;
 }
+
 /* 3. The Mask (Visible, biting the sun) */
 .sun-and-moon .moon circle {
+    will-change: transform; /* Declared once here */
     /* Center position to create crescent */
-    transform: translate(5px, -5px);
+    transform: translate(4px, -4px);
     /* When entering Light Mode (Moon): Slide in last */
-    transition: transform 0.4s cubic-bezier(0.5, 1.25, 0.75, 1.25);
+    transition: transform 0.4s cubic-bezier(0, 0, 0.5, 1);
     transition-delay: 0.0s;
-    will-change: transform;
 }
+
 /* --- OVERRIDE: DARK MODE (Shows SUN Icon) --- */
+
 /* 1. Sun Body (Shrinks back to normal) */
 [data-theme="dark"] .sun-and-moon > .sun {
     transform: scale(1);
     /* When going to Sun: Wait for mask to leave (0.1s) then shrink */
     transition-delay: 0.1s;
-    transition-timing-function: cubic-bezier(0.5, 1.5, 0.75, 1.25);
+    transition-timing-function: cubic-bezier(0, 0, 0.5, 1);
 }
+
 /* 2. Rays (Pop out) */
 [data-theme="dark"] .sun-and-moon > .sun-beams {
     opacity: 1;
     transform: rotate(0deg);
     /* When going to Sun: Wait for shrink, then pop */
     transition-delay: 0.15s;
-    transition-duration: 0.5s;
-    transition-timing-function: cubic-bezier(0.5, 1.5, 0.75, 1.25);
+    transition-duration: 0.4s;
+    transition-timing-function: cubic-bezier(0, 0, 0.5, 1);
 }
+
 /* 3. Mask (Slides away) */
 [data-theme="dark"] .sun-and-moon .moon circle {
     /* Move to Top-Right (Hidden) */
@@ -285,6 +309,8 @@ progress {
     transition-duration: 0.2s;
     transition-timing-function: ease-out;
 }
+
+
 /* Custom Info Box Style */
 .notice-info {
     background-color: var(--pico-mark-background-color); /* Uses Pico's theme blue */
@@ -332,7 +358,8 @@ progress {
         flex: 0 1 auto;
         height: 78px;
         width: 304px;
-        background-color: lightgray;
+        background-color: var(--pico-muted-color);
+        border-radius: var(--pico-border-radius);
         margin: 0;
     }
 
@@ -374,10 +401,11 @@ progress {
     }
 
     #theme-toggle-float {
-        /* Change from fixed to absolute so it scrolls away with the header */
-        position: absolute;
-        /* Since it rests statically on the background, we can soften or remove the shadow */
-        box-shadow: none;
+        position: fixed;
+        top: auto; /* Resets the top positioning */
+        bottom: 1.5rem; /* Safe distance from the bottom edge */
+        right: 1.5rem; /* Safe distance from the right edge */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Keep shadow so it stands out over content */
     }
 }
 
@@ -466,4 +494,58 @@ progress {
     border-radius: var(--pico-border-radius);
     border: 1px solid var(--pico-muted-border-color);
     margin-top: auto; /* Pushes player perfectly to the bottom of the card */
+}
+
+
+
+/* === Mermaid === */
+
+.mermaid {
+    background: var(--pico-card-background-color);
+}
+
+    .mermaid .node rect,
+    .mermaid .node circle,
+    .mermaid .node ellipse,
+    .mermaid .node polygon,
+    .mermaid .node path {
+        fill: var(--pico-form-element-background-color) !important;
+        stroke: var(--pico-form-element-border-color) !important;
+    }
+
+    .mermaid .cluster rect {
+        fill: var(--pico-code-background-color) !important;
+        stroke: var(--pico-form-element-border-color) !important;
+    }
+
+    .mermaid .nodeLabel {
+        color: var(--pico-color) !important;
+        font-family: var(--pico-font-family) !important;
+    }
+
+    .mermaid .node.important .nodeLabel,
+    .mermaid .node.important rect {
+        fill: var(--pico-contrast) !important;
+        color: var(--pico-contrast-inverse) !important;
+    }
+
+    .mermaid .edgePath path {
+        fill: var(--pico-primary) !important;
+        stroke: var(--pico-primary) !important;
+    }
+
+    .mermaid marker path {
+        fill: var(--pico-primary) !important;
+        stroke: var(--pico-primary) !important;
+    }
+
+
+.boxed-section {
+    margin: 4rem 0;
+    /*
+    background: var(--pico-progress-background-color);
+    padding: 1rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    */
 }

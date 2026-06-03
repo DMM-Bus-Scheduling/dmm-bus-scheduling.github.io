@@ -3,6 +3,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="EVOROUTE is an advanced Electric Vehicle Optimization Routing Engine. Reduce electric fleet sizes, optimize charge schedules, and maintain high service levels." />
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.evoroute.eu/" />
+    <meta property="og:title" content="EVOROUTE | Electric Vehicle Optimization Routing Engine" />
+    <meta property="og:description" content="Optimize your electric fleet with fewer vehicles. EVOROUTE analyzes trip schedules and vehicle specifications to generate efficient charging and routing schedules." />
+    <meta property="og:image" content="https://www.evoroute.eu/assets/og-image.jpg" /> <!-- Recommended size: 1200x630px -->
+    <!-- Twitter / X -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://www.evoroute.eu/" />
+    <meta property="twitter:title" content="EVOROUTE | Electric Vehicle Optimization Routing Engine" />
+    <meta property="twitter:description" content="Optimize your electric fleet with fewer vehicles. EVOROUTE analyzes trip schedules and vehicle specifications to generate efficient charging and routing schedules." />
+    <meta property="twitter:image" content="https://www.evoroute.eu/assets/og-image.jpg" />
+
+
     <title>EVOROUTE | Electric Vehicle Optimization Routing Engine </title>
 
     <script>
@@ -10,6 +25,7 @@
         document.documentElement.setAttribute('data-theme', storedTheme);
     </script>
 
+    <link rel="canonical" href="https://www.evoroute.eu/" />
     <!-- Pico CSS v2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <!-- Shared Stylesheet -->
@@ -36,10 +52,10 @@
             <li><a href="#team" class="secondary">About Us</a></li>
             <li><a href="#contact" role="button" class="contrast">Request Demo</a></li>
         </ul>
-    </nav>
+    </nav>      
 
     <!-- FLOATING THEME TOGGLE -->
-    <button  class="contrast" id="theme-toggle-float" naria-label="Toggle dark mode">
+    <button class="contrast" id="theme-toggle-float" aria-label="Toggle dark mode">
         <svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
             <mask class="moon" id="moon-mask">
                 <rect x="0" y="0" width="100%" height="100%" fill="white" />
@@ -75,14 +91,13 @@
                 </p>
             </hgroup>
 
-            <!-- Video Demos arranged in a responsive grid instead of inline blocks -->
             <div class="grid demo-grid" style="margin-top: 2rem; gap: 2rem;">
                 <figure class="demo-card">
                     <figcaption class="demo-caption">
                         <strong>Dashboard Demo</strong><br />
                         <small>Vilnius GTFS transit data is used as the input source.</small>
                     </figcaption>
-                    <video controls muted class="demo-video">
+                    <video controls muted playsinline class="demo-video">
                         <source src="dashboard.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -93,7 +108,7 @@
                         <strong>Visualizer Demo</strong><br />
                         <small>An example of an optimized route with route switching disabled.</small>
                     </figcaption>
-                    <video controls muted class="demo-video">
+                    <video controls muted playsinline class="demo-video">
                         <source src="visualizer.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -101,14 +116,15 @@
             </div>
 
             <div style="margin-top: 2rem;">
-                <a href="#contact" role="button" class="contrast">Request a Demo</a>
+                <a href="#contact" role="button" class="contrast" style="transform: scale(1.4);">Request a Demo</a>
             </div>
         </header>
 
         <!-- BENEFITS SECTION -->
-        <section style="margin-top: 2rem;">
-            <h2 class="text-center">Why Fleet Operators Should Choose EVOROUTE</h2>
-
+        <section class="boxed-section">
+            <header>
+                <h2 class="text-center">Why Fleet Operators Should Choose EVOROUTE</h2>
+            </header>
             <div class="grid" style="margin-top: 2rem;">
                 <article>
                     <header><strong>Minimal Fleet Size</strong></header>
@@ -145,7 +161,7 @@
         </section>
 
         <!-- SOCIAL PROOF -->
-        <section class="text-center" style="margin: 3rem 0; padding: 2rem 0; border-top: 1px solid var(--pico-muted-border-color); border-bottom: 1px solid var(--pico-muted-border-color);">
+        <section class="text-center boxed-section" style="padding: 2rem 0; border-top: 1px solid var(--pico-muted-border-color); border-bottom: 1px solid var(--pico-muted-border-color);">
             <p><small style="text-transform: uppercase; letter-spacing: 1px;">Trusted by Leading Lithuanian Transport Company</small></p>
             <div style="display: flex; justify-content: center; align-items: center; margin-top: 1rem;">
                 <div style="background-color: #4a4a4a; padding: 1rem 2rem; border-radius: var(--pico-border-radius); display: inline-block;">
@@ -157,56 +173,54 @@
         </section>
 
         <!-- HOW IT WORKS SECTION -->
-        <section id="how-it-works" style="margin-top: 4rem;">
-            <div class="text-center">
+        <section id="how-it-works" class="boxed-section">
+            <header class="text-center">
                 <h2>How It Works</h2>
                 <p>Our optimization engine transforms client's transit data into efficient electric vehicle schedules. It minimizes fleet size while ensuring full coverage.</p>
-            </div>
+            </header>
 
             <div class="grid" style="margin-top: 2rem;">
                 <!-- Inputs -->
                 <article>
-                    <header><strong>Inputs</strong></header>
+                    <header>Inputs</header>
                     <ul>
                         <li><strong>Stops & Routes:</strong> Ordered lists of locations vehicles have to visit</li>
                         <li><strong>Trips:</strong> Arrival and departure timetables</li>
-                        <li><strong>Schedules:</strong> Weekdays, weekends, and seasonal variations</li>
-                        <li><strong>Vehicles:</strong> Battery capacity, discharge & charge rates</li>
+                        <li><strong>Service Schedules:</strong> Weekday, weekend, holiday, seasonal or other trip groupings</li>
+                        <li><strong>Vehicle Specifications:</strong> Battery capacity, charging and discharging rates</li>
                         <li><strong>Depots and Charging Points:</strong> Parking and charging locations</li>
                     </ul>
                 </article>
 
                 <!-- Outputs -->
                 <article>
-                    <header><strong>Outputs</strong></header>
+                    <header>Outputs</header>
                     <ul>
                         <li><strong>Minimal Fleet Size:</strong> Minimum number of vehicles required to meet demand</li>
-                        <li><strong>Vehicle Schedules:</strong> Per-vehicle schedules adapted to different demand periods (weekdays, weekends, seasonal variations)</li>
-                        <li><strong>Multi-Location Charging:</strong> Scheduled charging slots for each location</li>
-                        <li><strong>Route Switching (if enabled):</strong> Vehicles doing swaps between compatible trips</li>
+                        <li><strong>Vehicle Schedules:</strong> Individual vehicle schedules generated from input service schedules</li>
+                        <li><strong>Multi-Location Charging Schedules:</strong> Charging schedules for each charging point location</li>
+                        <li><strong>Route Switching Vehicles (if enabled):</strong> Vehicles performing swaps between compatible trips in different routes</li>
                     </ul>
                 </article>
             </div>
 
-            <!-- Optimization Modes (Boxed layout matching style.css theme) -->
-            <article class="boxed-grid">
-                <h5 class="text-center" style="margin-bottom: 1rem;">Optimization Modes</h5>
-                <div class="grid">
+            <article>
+                <header class="text-center">Optimization Modes</header>
+                <dl class="grid">
                     <div>
-                        <p><strong>Near Real-time Mode:</strong> Graph-based heuristics for near real-time planning.</p>
+                        <dt><strong>Near Real-time Mode</strong></dt>
+                        <dd>Graph-based heuristics for near real-time planning.</dd>
                     </div>
                     <div>
-                        <p><strong>Globally Optimal Mode:</strong> Exact fleet size minimization using linear programming.</p>
+                        <dt><strong>Globally Optimal Mode</strong></dt>
+                        <dd>Exact fleet size minimization using linear programming.</dd>
                     </div>
-                </div>
+                </dl>
             </article>
 
             <!-- Flowchart visualization (Mermaid) -->
             <article class="overflow-auto">
-                <header class="text-center">
-                    <strong>System Flow</strong>
-                </header>
-
+                <header class="text-center">System Flow</header>
                 <div id="mermaid-container">
                     <div class="mermaid">
                         graph LR
@@ -214,8 +228,9 @@
                         subgraph Ingest ["Data Inputs"]
                         I1["Stops & Routes"]
                         I2["Trips"]
-                        I3["Vehicle Specifications"]
-                        I4["Depots & Charging Points"]
+                        I3["Service Schedules"]
+                        I4["Vehicle Specifications"]
+                        I5["Depots & Charging Points"]
                         end
 
                         %% Engine Box
@@ -230,8 +245,8 @@
                         %% Outputs
                         subgraph Results ["Optimized Outputs"]
                         O1["Fleet Size"]
-                        O2["Schedules"]
-                        O3["Charging Plans"]
+                        O2["Individual Vehicle Schedules"]
+                        O3["Charging Point Schedules"]
                         end
 
                         %% Relations
@@ -239,6 +254,7 @@
                         I2 --> Engine
                         I3 --> Engine
                         I4 --> Engine
+                        I5 --> Engine
 
                         Engine --> FM
                         Engine --> OM
@@ -251,60 +267,67 @@
                         OM --> O2
                         OM --> O3
 
-                        style Engine fill:#10b981,stroke:#059669,color:#fff
+                        class Engine important
+
                     </div>
                 </div>
             </article>
         </section>
 
         <!-- INTERACTIVE CALCULATOR SECTION -->
-        <section class="boxed-grid" id="calculator" style="margin-top: 4rem;">
-            <div class="text-center">
+        <section id="calculator" class="boxed-section">
+
+            <header class="text-center">
                 <h2>Estimate Your Fleet's Optimization Potential</h2>
-                <p>Input your basic fleet metrics to see how much EVOROUTE could reduce your vehicle requirements and operating costs.</p>
-            </div>
+                <p>
+                    Input your basic fleet metrics to see how much EVOROUTE could reduce your vehicle requirements and operating costs.
+                </p>
+            </header>
 
-            <article class="boxed-grid" style="margin-top: 2rem;">
-                <div class="grid">
-                    <!-- Calculator Inputs -->
-                    <div>
-                        <h5 class="calculator-header">Your Metrics</h5>
-                        <label for="input-fleet">
-                            Current Active Fleet Size
-                            <input type="number" id="input-fleet" value="30" min="5" max="500" oninput="calculateSavings()">
-                            <small>Total vehicles currently required to cover service.</small>
-                        </label>
-                        <label for="input-cost" style="margin-top: 1rem;">
-                            Est. Annual Cost per Vehicle (€)
-                            <input type="number" id="input-cost" value="45000" min="5000" step="5000" oninput="calculateSavings()">
-                            <small>Including financing, maintenance, energy, and labor.</small>
-                        </label>
+            <article class="grid">
+
+                <!-- Inputs -->
+                <section>
+                    <h3 class="calculator-header">Your Metrics</h3>
+
+                    <label for="input-fleet">
+                        Current Active Fleet Size
+                        <input type="number" id="input-fleet" value="30" min="5" max="500" oninput="calculateSavings()">
+                        <small>Total vehicles currently required to cover service.</small>
+                    </label>
+
+                    <label for="input-cost" style="margin-top: 1rem;">
+                        Est. Annual Cost per Vehicle (€)
+                        <input type="number" id="input-cost" value="45000" min="5000" step="5000" oninput="calculateSavings()">
+                        <small>Including financing, maintenance, energy, and labor.</small>
+                    </label>
+                </section>
+
+                <!-- Outputs -->
+                <section class="calculator-results">
+                    <h3 class="calculator-header">Estimated Output</h3>
+
+                    <div class="savings-highlight">
+                        <span class="badge badge-ok">Estimated Savings</span>
+                        <h2 id="output-savings">€225,000</h2>
+                        <small>Approximate annual operational cost reduction.</small>
                     </div>
 
-                    <!-- Calculator Results -->
-                    <div class="calculator-results">
-                        <h5 class="calculator-header">Estimated Output</h5>
-
-                        <div class="savings-highlight">
-                            <span class="badge badge-ok">Estimated Savings</span>
-                            <h2 id="output-savings">€225,000</h2>
-                            <small>Approximate annual operational cost reduction.</small>
+                    <div class="grid">
+                        <div>
+                            <small class="metric-label">Optimized Fleet Size</small>
+                            <span class="metric-value" id="output-new-fleet">25</span>
+                            <small class="metric-subtext" id="output-vehicles-saved">(5 vehicles saved)</small>
                         </div>
 
-                        <div class="grid">
-                            <div>
-                                <small class="metric-label">Optimized Fleet Size</small>
-                                <span class="metric-value" id="output-new-fleet">25</span>
-                                <small class="metric-subtext" id="output-vehicles-saved">(5 vehicles saved)</small>
-                            </div>
-                            <div>
-                                <small class="metric-label">Utilization Efficiency</small>
-                                <span class="metric-value" id="path-coverage">+16.7%</span>
-                                <small class="metric-subtext">Higher path coverage per asset</small>
-                            </div>
+                        <div>
+                            <small class="metric-label">Utilization Efficiency</small>
+                            <span class="metric-value" id="path-coverage">+16.7%</span>
+                            <small class="metric-subtext">Higher path coverage per asset</small>
                         </div>
                     </div>
-                </div>
+                </section>
+
             </article>
         </section>
 
@@ -340,7 +363,7 @@
         </section>
             -->
         <!-- TEAM SECTION -->
-        <section id="team" style="margin-top: 3rem;">
+        <section id="team" class="boxed-section">
             <h2 class="text-center">About Us</h2>
             <p class="text-center">We specialize in mathematical modeling, operations research, and software engineering.</p>
 
@@ -366,22 +389,24 @@
         </section>
 
         <!-- CONTACT FORM SECTION -->
-        <section id="contact" style="margin-top: 3rem;">
+        <section id="contact" class="boxed-section">
+
+            <header class="text-center">
+                <h2>Request an Optimization Demo</h2>
+                <p>Get in touch to run a custom pilot analysis on your fleet dataset</p>
+            </header>
             <article>
-                <header class="text-center">
-                    <h4>Request an Optimization Demo</h4>
-                    <p>Get in touch to run a custom pilot analysis on your fleet dataset</p>
-                </header>
+
 
                 <form name="contact" netlify-honeypot="bot-field" data-netlify="true" data-netlify-recaptcha="true">
                     <div class="grid">
                         <label>
                             Name
-                            <input type="text" name="name" placeholder="Your Name" required>
+                            <input type="text" name="name" autocomplete="name" placeholder="Your Name" required>
                         </label>
                         <label>
                             Work Email
-                            <input type="email" name="email" placeholder="you@company.com" required>
+                            <input type="email" name="email" autocomplete="email" placeholder="you@company.com" required>
                         </label>
                     </div>
                     <label>
@@ -393,6 +418,7 @@
                             Don’t fill this out if you’re human: <input name="bot-field" type="text" />
                         </label>
                     </div>
+
                     <!-- Feedback Message Container -->
                     <div id="form-status-message" class="hidden" style="margin-bottom: 1rem; font-size: 0.9rem;"></div>
 
@@ -402,114 +428,38 @@
                     </div>
 
                 </form>
-
-                <footer class="text-center">
-                    <p><small>Email: contact@evoroute.eu | Phone: +370 654 06897, +370 652 53872 </small></p>
-                </footer>
             </article>
         </section>
 
         <!-- FOOTER -->
         <footer class="text-center" style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--pico-muted-border-color);">
+            <p><small>Email: contact@evoroute.eu | Phone: +370 654 06897, +370 652 53872 </small></p>
             <p><small>&copy; 2026 Minalgoritmika. All rights reserved.</small></p>
             <p><small><a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></small></p>
         </footer>
 
     </main>
 
-    <!-- Theme Control & Dynamic Mermaid Loader -->
     <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        import {
+            loadSavedTheme,
+            initThemeToggle,
+            onThemeChange
+        } from './theme-toggle.js';
 
-    // Store the raw Mermaid layout syntax in a template literal to re-generate it on demand
-    const mermaidTemplate = `
-        graph LR
-        subgraph Ingest ["Data Inputs"]
-        I1["Stops & Routes"]
-        I2["Trips"]
-        I3["Vehicle Specifications"]
-        I4["Depots & Charging Points"]
-        end
+        import {
+            initMermaid,
+            renderFlowchart
+        } from './flowchart.js';
 
-        Engine["Optimization Engine"]
+        const theme = loadSavedTheme();
 
-        subgraph Modes ["Solver Modes"]
-        FM["Real-time Mode"]
-        OM["Optimal Mode"]
-        end
+        initMermaid();
+        //await renderFlowchart();
 
-        subgraph Results ["Optimized Outputs"]
-        O1["Fleet Size"]
-        O2["Schedules"]
-        O3["Charging Plans"]
-        end
-
-        I1 --> Engine
-        I2 --> Engine
-        I3 --> Engine
-        I4 --> Engine
-
-        Engine --> FM
-        Engine --> OM
-
-        FM --> O1
-        FM --> O2
-        FM --> O3
-
-        OM --> O1
-        OM --> O2
-        OM --> O3
-
-        style Engine fill:#10b981,stroke:#059669,color:#fff
-    `;
-
-    const getPreferredTheme = (themeName) => {
-        return themeName === 'dark' ? 'dark' : 'neutral';
-    };
-
-    // Render function that inserts the raw text and runs the parser
-    const renderFlowchart = async (themeName) => {
-        const container = document.getElementById('mermaid-container');
-        if (!container) return;
-
-        // Reset container with fresh markup containing the clean text template
-        container.innerHTML = `<div class="mermaid">${mermaidTemplate}</div>`;
-
-        // Explicitly set useMaxWidth to false in Javascript
-        // This stops Mermaid from enforcing restricted inline pixels, letting our CSS override it cleanly
-        mermaid.initialize({
-            startOnLoad: false,
-            theme: getPreferredTheme(themeName),
-            securityLevel: 'loose',
-            useMaxWidth: false,
-            flowchart: {
-                useMaxWidth: false,
-                htmlLabels: true
-            }
+        initThemeToggle({
+            buttonId: 'theme-toggle-float'
         });
-
-        await mermaid.run({
-            nodes: container.querySelectorAll('.mermaid')
-        });
-    };
-
-    // Initial Load execution
-    const initialTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    await renderFlowchart(initialTheme);
-
-    // Dynamic Theme Toggle Event
-    const themeToggle = document.getElementById('theme-toggle-float');
-    themeToggle.addEventListener('click', async () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-        // Instant visual switch of UI components
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-
-        // Smoothly re-render the diagram in memory without page reload
-        await renderFlowchart(newTheme);
-    });
     </script>
 
     <script>
@@ -521,6 +471,10 @@
         const annualCostPerVehicle = parseFloat(costInput.value) || 0;
 
         if (currentFleetSize <= 0 || annualCostPerVehicle <= 0) {
+            document.getElementById('output-new-fleet').innerText = '—';
+            document.getElementById('output-vehicles-saved').innerText = '';
+            document.getElementById('output-savings').innerText = '—';
+            document.getElementById('path-coverage').innerText = '—';
             return;
         }
 
